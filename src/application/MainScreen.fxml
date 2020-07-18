@@ -79,7 +79,7 @@
                   <Font size="24.0" />
                </font>
             </Label>
-            <Button fx:id="calibrationMenuBT" layoutX="487.0" layoutY="15.0" mnemonicParsing="false" onAction="#onCaliblationController" prefHeight="25.0" prefWidth="141.0" text="CalibrationMenu" />
+            <Button fx:id="calibrationMenuBT" layoutX="335.0" layoutY="3.0" mnemonicParsing="false" onAction="#onCaliblationController" prefHeight="25.0" prefWidth="305.0" text="CalibrationMenu" />
          </children>
       </AnchorPane>
    </children>

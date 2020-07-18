@@ -45,9 +45,8 @@
          </font>
       </Label>
       <Button fx:id="GetEmptyValueBT_1" layoutX="345.0" layoutY="90.0" mnemonicParsing="false" onAction="#onGetEmptyValueBT_1" prefHeight="27.0" prefWidth="107.0" text="GetEmptyValue" />
-      <Label fx:id="GetEmptyValueInfo_1" layoutX="460.0" layoutY="90.0" prefHeight="27.0" prefWidth="127.0" text="Label" />
+      <Label fx:id="infoLB" layoutX="339.0" layoutY="427.0" prefHeight="27.0" prefWidth="283.0" text="Label" />
       <Button fx:id="GetCalibValueBT_1" layoutX="345.0" layoutY="132.0" mnemonicParsing="false" onAction="#onGetCalibValu_1" prefHeight="27.0" prefWidth="107.0" text="GetCalibValue" />
-      <Label fx:id="GetCalibValueInfo_1" layoutX="460.0" layoutY="132.0" prefHeight="27.0" prefWidth="127.0" text="Label" />
       <Button fx:id="calibSaveBT" layoutX="27.0" layoutY="427.0" mnemonicParsing="false" onAction="#onCalibSaveBT" prefHeight="39.0" prefWidth="138.0" text="SAVE">
          <font>
             <Font size="18.0" />
@@ -94,8 +93,6 @@
             <Font size="14.0" />
          </font>
       </Label>
-      <Label fx:id="GetEmptyValueInfo_2" layoutX="460.0" layoutY="278.0" prefHeight="27.0" prefWidth="127.0" text="Label" />
-      <Label fx:id="GetCalibValueInfo_2" layoutX="460.0" layoutY="320.0" prefHeight="27.0" prefWidth="127.0" text="Label" />
       <Label layoutX="27.0" layoutY="240.0" prefHeight="31.0" prefWidth="460.0" text="&lt;&lt;&lt;&lt;&lt;&lt;CH 2&gt;&gt;&gt;&gt;&gt;&gt;">
          <font>
             <Font name="System Bold" size="24.0" />

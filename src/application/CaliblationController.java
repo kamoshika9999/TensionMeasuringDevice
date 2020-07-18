@@ -36,8 +36,6 @@ public class CaliblationController {
     @FXML
     private Button GetCalibValueBT_2;
     @FXML
-    private Label GetCalibValueInfo_1;
-    @FXML
     private Button calibSaveBT;
     @FXML
     private Button calibCancelBT;
@@ -48,9 +46,8 @@ public class CaliblationController {
     @FXML
     private TextField calibValueTX_2;
     @FXML
-    private Label GetEmptyValueInfo_2;
-    @FXML
-    private Label GetCalibValueInfo_2;
+    private Label infoLB;;
+
 
     //クラス変数
     static long[] emptyValue = new long[2];
@@ -84,7 +81,7 @@ public class CaliblationController {
 
     @FXML
     void onGetCalibValu_1(ActionEvent event) {
-    	double reslut = getLoadCellValue(0,this.GetCalibValueInfo_1);
+    	long reslut = (long) getLoadCellValue(0);
     	if( reslut > 0) {
     		Platform.runLater(() ->this.calibValueTX_1 .setText(
     				String.format("%d", reslut)));
@@ -96,7 +93,7 @@ public class CaliblationController {
 
     @FXML
     void onGetEmptyValueBT_1(ActionEvent event) {
-    	double reslut = getLoadCellValue( 0, this.GetEmptyValueInfo_1);
+    	long reslut = (long) getLoadCellValue( 0);
     	if( reslut > 0) {
     		Platform.runLater(() ->this.enptyValueTX_1.setText(
     				String.format("%d", reslut)));
@@ -106,7 +103,7 @@ public class CaliblationController {
     }
     @FXML
     void onGetCalibValu_2(ActionEvent event) {
-    	double reslut = getLoadCellValue(1,this.GetCalibValueInfo_2);
+    	long reslut = (long) getLoadCellValue(1);
     	if( reslut > 0) {
     		Platform.runLater(() ->this.calibValueTX_2 .setText(
     				String.format("%d", reslut)));
@@ -117,19 +114,21 @@ public class CaliblationController {
 
     @FXML
     void onGetEmptyValueBT_2(ActionEvent event) {
-    	double reslut = getLoadCellValue( 1, this.GetEmptyValueInfo_1);
+    	long reslut = (long) getLoadCellValue( 1);
     	if( reslut > 0 ) {
-    		Platform.runLater(() ->this.enptyValueTX_1.setText(
+    		Platform.runLater(() ->this.enptyValueTX_2.setText(
     				String.format("%d", reslut)));
     	}else {
-    		Platform.runLater(() ->this.enptyValueTX_1.setText("0"));
+    		Platform.runLater(() ->this.enptyValueTX_2.setText("0"));
     	}
     }
     /**
     *
     * @return  double[chNo] hx.value
     */
-   public double getLoadCellValue(int chNo,Label dstInfoLabel){
+   public double getLoadCellValue(int chNo){
+	Platform.runLater(() ->infoLB.setText("取得中"));
+
    	try {
    		double aveValue= 0.0;
    		final int rpeetCnt = (int)(30/0.1);
@@ -138,10 +137,10 @@ public class CaliblationController {
 		        hx[chNo].read();
 		        System.out.println("value="+hx[chNo].value);
 		        aveValue += hx[chNo].value;
-		        Platform.runLater(() ->dstInfoLabel.setText(String.valueOf(hx[chNo].value)));
    		}
 
 		aveValue /= rpeetCnt;
+		Platform.runLater(() ->infoLB.setText(""));
 
         return aveValue;
 
@@ -167,5 +166,6 @@ public class CaliblationController {
     	Platform.runLater(() ->this.enptyValueTX_2.setText(String.valueOf(this.emptyValue[1])));
     	Platform.runLater(() ->this.calibValueTX_2.setText(String.valueOf(this.calibValue[1])));
     	Platform.runLater(() ->this.calibWeightTX_2.setText(String.valueOf(this.calibWeight[1])));
+    	Platform.runLater(() ->infoLB.setText(""));
     }
 }

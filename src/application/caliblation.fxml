@@ -44,9 +44,9 @@
             <Font size="14.0" />
          </font>
       </Label>
-      <Button fx:id="GetEmptyValueBT_1" layoutX="345.0" layoutY="90.0" mnemonicParsing="false" onAction="#onGetEmptyValueBT_1" prefHeight="27.0" prefWidth="107.0" text="GetEmptyValue" />
+      <Button fx:id="GetEmptyValueBT_1" layoutX="345.0" layoutY="90.0" mnemonicParsing="false" onAction="#onGetEmptyValueBT_1" prefHeight="27.0" prefWidth="174.0" text="GetEmptyValue" />
       <Label fx:id="infoLB" layoutX="339.0" layoutY="427.0" prefHeight="27.0" prefWidth="283.0" text="Label" />
-      <Button fx:id="GetCalibValueBT_1" layoutX="345.0" layoutY="132.0" mnemonicParsing="false" onAction="#onGetCalibValu_1" prefHeight="27.0" prefWidth="107.0" text="GetCalibValue" />
+      <Button fx:id="GetCalibValueBT_1" layoutX="345.0" layoutY="132.0" mnemonicParsing="false" onAction="#onGetCalibValu_1" prefHeight="27.0" prefWidth="174.0" text="GetCalibValue" />
       <Button fx:id="calibSaveBT" layoutX="27.0" layoutY="427.0" mnemonicParsing="false" onAction="#onCalibSaveBT" prefHeight="39.0" prefWidth="138.0" text="SAVE">
          <font>
             <Font size="18.0" />
@@ -98,7 +98,7 @@
             <Font name="System Bold" size="24.0" />
          </font>
       </Label>
-      <Button fx:id="GetEmptyValueBT_2" layoutX="345.0" layoutY="280.0" mnemonicParsing="false" onAction="#onGetEmptyValueBT_2" prefHeight="27.0" prefWidth="107.0" text="GetEmptyValue" />
-      <Button fx:id="GetCalibValueBT_2" layoutX="345.0" layoutY="322.0" mnemonicParsing="false" onAction="#onGetCalibValu_2" prefHeight="27.0" prefWidth="107.0" text="GetCalibValue" />
+      <Button fx:id="GetEmptyValueBT_2" layoutX="345.0" layoutY="280.0" mnemonicParsing="false" onAction="#onGetEmptyValueBT_2" prefHeight="27.0" prefWidth="174.0" text="GetEmptyValue" />
+      <Button fx:id="GetCalibValueBT_2" layoutX="345.0" layoutY="322.0" mnemonicParsing="false" onAction="#onGetCalibValu_2" prefHeight="27.0" prefWidth="174.0" text="GetCalibValue" />
    </children>
 </AnchorPane>

@@ -2,6 +2,9 @@ package application;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -54,7 +57,11 @@ public class CaliblationController {
     static long[] calibValue = new long[2];
     static double[] calibWeight = new double[2];
     static HX711[] hx;//MainScreenControllerで作成されたオブジェクトの参照
-
+    private String infoText ="";
+    private long aveValue= 0;
+	private boolean trFlg = false;
+	private TextField targetTX;//スケジューラーで書き換えを行うTextfield
+	private boolean targetTX_comp = false;//スケジューラーで書き換え後にfalseに設定 測定開始時にTrueに設定
 
     @FXML
     void onCalibCancelBT(ActionEvent event) {
@@ -81,74 +88,63 @@ public class CaliblationController {
 
     @FXML
     void onGetCalibValu_1(ActionEvent event) {
-    	long reslut = (long) getLoadCellValue(0);
-    	if( reslut > 0) {
-    		Platform.runLater(() ->this.calibValueTX_1 .setText(
-    				String.format("%d", reslut)));
-    	}else {
-    		Platform.runLater(() ->this.calibValueTX_1.setText("0"));
-    	}
+    	if(trFlg) return;
 
+    	targetTX = calibValueTX_1;
+    	getLoadCellValue(0);
     }
 
     @FXML
     void onGetEmptyValueBT_1(ActionEvent event) {
-    	long reslut = (long) getLoadCellValue( 0);
-    	if( reslut > 0) {
-    		Platform.runLater(() ->this.enptyValueTX_1.setText(
-    				String.format("%d", reslut)));
-    	}else {
-    		Platform.runLater(() ->this.enptyValueTX_1.setText("0"));
-    	}
+    	if(trFlg) return;
+
+    	targetTX = enptyValueTX_1;
+    	getLoadCellValue(0);
     }
     @FXML
     void onGetCalibValu_2(ActionEvent event) {
-    	long reslut = (long) getLoadCellValue(1);
-    	if( reslut > 0) {
-    		Platform.runLater(() ->this.calibValueTX_2 .setText(
-    				String.format("%d", reslut)));
-    	}else {
-    		Platform.runLater(() ->this.calibValueTX_2.setText("0"));
-    	}
+    	if(trFlg) return;
+
+    	targetTX = calibValueTX_2;
+    	getLoadCellValue(1);
     }
 
     @FXML
     void onGetEmptyValueBT_2(ActionEvent event) {
-    	long reslut = (long) getLoadCellValue( 1);
-    	if( reslut > 0 ) {
-    		Platform.runLater(() ->this.enptyValueTX_2.setText(
-    				String.format("%d", reslut)));
-    	}else {
-    		Platform.runLater(() ->this.enptyValueTX_2.setText("0"));
-    	}
+    	if(trFlg) return;
+
+    	targetTX = enptyValueTX_2;
+    	getLoadCellValue(1);
     }
     /**
     *
     * @return  double[chNo] hx.value
     */
-   public double getLoadCellValue(int chNo){
-	Platform.runLater(() ->infoLB.setText("取得中"));
+   public void getLoadCellValue(int chNo){
+	   ScheduledExecutorService tr = Executors.newSingleThreadScheduledExecutor();
 
-   	try {
-   		double aveValue= 0.0;
-   		final int rpeetCnt = (int)(30/0.1);
-
-   		for(int j=0;j<rpeetCnt;j++) {
-		        hx[chNo].read();
-		        System.out.println("value="+hx[chNo].value);
-		        aveValue += hx[chNo].value;
-   		}
-
-		aveValue /= rpeetCnt;
-		Platform.runLater(() ->infoLB.setText(""));
-
-        return aveValue;
-
-   	}catch(Exception e) {
-   		System.out.println(e);
-   		return -1.0;
-
-   	}
+	   /*
+	    * 別スレッドで取得しないとUIが更新できない
+	    */
+	   Runnable frameGrabber = new Runnable() {
+		   @Override
+		   public void run() {
+			   trFlg=true;
+			   targetTX_comp = true;
+	   			final int rpeetCnt = (int)(30/0.1);
+	   		   aveValue=0;
+	   			for(int i=0;i<rpeetCnt;i++) {
+				   hx[chNo].read();
+	  				System.out.println("value="+hx[chNo].value);
+					infoText = String.format("%d", hx[chNo].value);
+					infoText = String.valueOf(i);
+			        aveValue += hx[chNo].value;
+	   			}
+	   			aveValue /= rpeetCnt;
+	   			trFlg=false;
+		   }
+	   };
+	   tr.execute(frameGrabber);
    }
 
    @FXML
@@ -166,6 +162,27 @@ public class CaliblationController {
     	Platform.runLater(() ->this.enptyValueTX_2.setText(String.valueOf(this.emptyValue[1])));
     	Platform.runLater(() ->this.calibValueTX_2.setText(String.valueOf(this.calibValue[1])));
     	Platform.runLater(() ->this.calibWeightTX_2.setText(String.valueOf(this.calibWeight[1])));
-    	Platform.runLater(() ->infoLB.setText(""));
+
+ 	   ScheduledExecutorService tr = Executors.newSingleThreadScheduledExecutor();
+	   Runnable frameGrabber2 = new Runnable() {
+		   @Override
+		   public void run() {
+			   Platform.runLater(() ->infoLB.setText(infoText));
+
+			   /*
+			    * public void getLoadCellValue(int chNo)で得られた
+			    * データーの平均値をテキストフィールドへ入力する
+			    */
+			   if(targetTX != null) {
+				   if(!trFlg && targetTX_comp) {
+					   Platform.runLater(() ->targetTX.setText(String.format("%d", aveValue)));
+					   infoText = "データー取得完了";
+					   targetTX_comp = false;//このフラグは、この場所でのみfalseにされる
+				   }
+			   }
+		   }
+	   };
+	   tr.scheduleAtFixedRate(frameGrabber2, 0, 33, TimeUnit.MILLISECONDS);
+
     }
 }

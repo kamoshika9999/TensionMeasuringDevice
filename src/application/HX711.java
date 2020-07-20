@@ -35,10 +35,13 @@ public class HX711 {
         setGain(gain);
     }
 
-    public void read() {
+    public boolean read() {
         pinCLK.setState(PinState.LOW);
+        int timeOutCnt = 0;
         while (!isReady()) {
             sleep(1);
+			timeOutCnt++;
+            if(timeOutCnt>1000) return false;//1秒以上pinDTがHeightならばタイムアウト
         }
 
         long count = 0;
@@ -59,6 +62,7 @@ public class HX711 {
         System.out.println(value);
         pinCLK.setState(PinState.LOW);
         weight = (value - emptyValue)*((calibrationWeight - emptyWeight)/(calibrationValue - emptyValue));
+        return true;
     }
 
     public void setGain(int gain) {

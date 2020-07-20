@@ -134,10 +134,17 @@ public class CaliblationController {
 	   			final int rpeetCnt = (int)(30/0.1);
 	   		   aveValue=0;
 	   			for(int i=0;i<rpeetCnt;i++) {
-				   hx[chNo].read();
+				   if( !hx[chNo].read() ) {
+					   if( !hx[chNo].read() ) {
+						   infoText ="Failed";
+						   trFlg=false;
+						   return;
+					   }
+
+				   }
 	  				System.out.println("value="+hx[chNo].value);
 					infoText = String.format("%d", hx[chNo].value);
-					infoText = String.valueOf(i);
+					//infoText = String.valueOf(i);
 			        aveValue += hx[chNo].value;
 	   			}
 	   			aveValue /= rpeetCnt;

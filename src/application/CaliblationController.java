@@ -51,11 +51,18 @@ public class CaliblationController {
     @FXML
     private Label infoLB;;
 
+    @FXML
+    private Label ch1_resultLB;
+    @FXML
+    private Label ch2_resultLB;
+
+
 
     //クラス変数
     static long[] emptyValue = new long[2];
     static long[] calibValue = new long[2];
     static double[] calibWeight = new double[2];
+    static double[] resolution = new double[2];
     static HX711[] hx;//MainScreenControllerで作成されたオブジェクトの参照
     private String infoText ="";
     private long aveValue= 0;
@@ -75,10 +82,25 @@ public class CaliblationController {
     	emptyValue[0] = Long.valueOf( this.enptyValueTX_1.getText() );
     	calibValue[0] = Long.valueOf( this.calibValueTX_1.getText());
     	calibWeight[0] = Double.valueOf( this.calibWeightTX_1.getText());
+    	resolution[0] =(calibValue[0]-emptyValue[0])/calibWeight[0];
 
     	emptyValue[1] = Long.valueOf( this.enptyValueTX_2.getText() );
     	calibValue[1] = Long.valueOf( this.calibValueTX_2.getText());
     	calibWeight[1] = Double.valueOf( this.calibWeightTX_2.getText());
+    	resolution[1] =(calibValue[1]-emptyValue[1])/calibWeight[1];
+
+
+
+    	//キャリブレーションデーターの保存
+    	csvSaveLoad.calibDataCsvWrite(emptyValue, calibValue, calibWeight,resolution);
+
+    	//ロードセルオブジェクトのパラメータを更新
+    	for(int i=0;i<MainScreenController.ch_cnt;i++) {
+	    	hx[i].emptyValue =  CaliblationController.emptyValue[i];
+	    	hx[i].calibrationValue = CaliblationController.calibValue[i];
+	    	hx[i].calibrationWeight =CaliblationController.calibWeight[i];
+	    	hx[i].resolution = CaliblationController.resolution[i];
+    	}
 
 		Scene scene = ((Node) event.getSource()).getScene();
 		Window window = scene.getWindow();
@@ -131,23 +153,72 @@ public class CaliblationController {
 		   public void run() {
 			   trFlg=true;
 			   targetTX_comp = true;
-	   			final int rpeetCnt = (int)(30/0.1);
+			   final int rpeetCnt = (int)(10/0.1);
 	   		   aveValue=0;
+
+	   		   System.out.println("----初期偏差 確認開始-----");
+	   		   //最初の20回の平均を取得
+	   		   final int tryCnt = 20;
+	   		   long[] tmpValue = new long[tryCnt];
+	   		   double tmpAve = 0;
+	   		   double tmpMedian;
+	   		   for(int i=0;i<tryCnt;i++) {
+	   			   System.out.print(".");
+				   if( !hx[chNo].read() ) {
+					   if( !hx[chNo].read() ) {
+						   infoText ="Failed";
+						   trFlg=false;
+						   System.out.println("最初の20回測定内でFailed発生");
+						   return;
+					   }
+				   }
+				   tmpValue[i] = hx[chNo].value;
+				   tmpAve += tmpValue[i];
+	   		   }
+	   		   tmpAve /= tryCnt;
+
+	   		   System.out.println();
+	   		   System.out.println("平均tmpAve="+tmpAve);
+
+	   		   //最初の(tryCnt)回の偏差の平均を計算
+	   		   double[] tmpDeviation = new double[tryCnt];
+	   		   for(int i=0;i<tryCnt;i++) {
+	   			   tmpDeviation[i] = Math.abs(tmpValue[i] - tmpAve);
+	   			   System.out.println("|tmpValue["+i+"] - tmpAve|" + Math.abs(tmpValue[i] - tmpAve));
+	   		   }
+	   		   System.out.println("----初期偏差 確認終了");
+
+	   		   tmpMedian = utilMath.mean(tmpDeviation);//偏差中央値取得
+	   		   if(tmpMedian<100) tmpMedian=100;
+	   		   System.out.println("偏差中央値tmpMedian="+tmpMedian);
+
+	   		   System.out.println();
+
+	   		   System.out.println("----平均 確認開始");
+	   		   int overCnt = 0;
 	   			for(int i=0;i<rpeetCnt;i++) {
+		   			   System.out.print(".");
 				   if( !hx[chNo].read() ) {
 					   if( !hx[chNo].read() ) {
 						   infoText ="Failed";
 						   trFlg=false;
 						   return;
 					   }
-
 				   }
-	  				System.out.println("value="+hx[chNo].value);
-					infoText = String.format("%d", hx[chNo].value);
-					//infoText = String.valueOf(i);
-			        aveValue += hx[chNo].value;
+				   //得た値が最初の20回の中央値の3倍を超えている場合(異常値の破棄)
+				   if( Math.abs( tmpAve - hx[chNo].value) > tmpMedian*3 ) {
+					  System.out.println( "tmpAve="+tmpAve + " tmpMedian(300%)="+tmpMedian*3 );
+					  System.out.println( "|tmpAve - hx[chNo].value| = " + Math.abs( tmpAve- hx[chNo].value));
+					  overCnt++;
+					  System.out.println("overCnt=" + overCnt);
+				   }else {
+						infoText = String.format("%d",hx[chNo].value);
+				        aveValue += hx[chNo].value;
+				   }
 	   			}
-	   			aveValue /= rpeetCnt;
+	   			aveValue /= rpeetCnt-overCnt;
+	   			System.out.println("----平均 確認終了:" + aveValue);
+
 	   			trFlg=false;
 		   }
 	   };
@@ -163,18 +234,39 @@ public class CaliblationController {
 
     @FXML
     void initialize() {
-    	Platform.runLater(() ->this.enptyValueTX_1.setText(String.valueOf(this.emptyValue[0])));
-    	Platform.runLater(() ->this.calibValueTX_1.setText(String.valueOf(this.calibValue[0])));
-    	Platform.runLater(() ->this.calibWeightTX_1.setText(String.valueOf(this.calibWeight[0])));
-    	Platform.runLater(() ->this.enptyValueTX_2.setText(String.valueOf(this.emptyValue[1])));
-    	Platform.runLater(() ->this.calibValueTX_2.setText(String.valueOf(this.calibValue[1])));
-    	Platform.runLater(() ->this.calibWeightTX_2.setText(String.valueOf(this.calibWeight[1])));
+    	Platform.runLater(() ->this.enptyValueTX_1.setText(String.valueOf(emptyValue[0])));
+    	Platform.runLater(() ->this.calibValueTX_1.setText(String.valueOf(calibValue[0])));
+    	Platform.runLater(() ->this.calibWeightTX_1.setText(String.valueOf(calibWeight[0])));
+    	Platform.runLater(() ->this.enptyValueTX_2.setText(String.valueOf(emptyValue[1])));
+    	Platform.runLater(() ->this.calibValueTX_2.setText(String.valueOf(calibValue[1])));
+    	Platform.runLater(() ->this.calibWeightTX_2.setText(String.valueOf(calibWeight[1])));
 
  	   ScheduledExecutorService tr = Executors.newSingleThreadScheduledExecutor();
 	   Runnable frameGrabber2 = new Runnable() {
 		   @Override
 		   public void run() {
 			   Platform.runLater(() ->infoLB.setText(infoText));
+			   try{
+				   long[] tmp_emptyValue = new long[2];
+				   long[] tmp_calibValue = new long[2];
+				   double[] tmp_calibWeight = new double[2];
+				   double[] tmp_resolution = new double[2];
+			    	tmp_emptyValue[0] = Long.valueOf( enptyValueTX_1.getText() );
+			    	tmp_calibValue[0] = Long.valueOf( calibValueTX_1.getText());
+			    	tmp_calibWeight[0] = Double.valueOf( calibWeightTX_1.getText());
+			    	tmp_resolution[0] =(tmp_calibValue[0]-tmp_emptyValue[0])/tmp_calibWeight[0];
+
+			    	tmp_emptyValue[1] = Long.valueOf( enptyValueTX_2.getText() );
+			    	tmp_calibValue[1] = Long.valueOf( calibValueTX_2.getText());
+			    	tmp_calibWeight[1] = Double.valueOf( calibWeightTX_2.getText());
+			    	tmp_resolution[1] =(tmp_calibValue[1]-tmp_emptyValue[1])/tmp_calibWeight[1];
+
+					Platform.runLater(() ->ch1_resultLB.setText(String.format("%.5f",tmp_resolution[0] )));
+					Platform.runLater(() ->ch2_resultLB.setText(String.format("%.5f",tmp_resolution[1] )));
+
+			   }catch(Exception e){
+				   infoText ="入力した文字列が不正です";
+			   }
 
 			   /*
 			    * public void getLoadCellValue(int chNo)で得られた
@@ -183,7 +275,7 @@ public class CaliblationController {
 			   if(targetTX != null) {
 				   if(!trFlg && targetTX_comp) {
 					   Platform.runLater(() ->targetTX.setText(String.format("%d", aveValue)));
-					   infoText = "データー取得完了";
+						infoText = "データー取得完了";
 					   targetTX_comp = false;//このフラグは、この場所でのみfalseにされる
 				   }
 			   }

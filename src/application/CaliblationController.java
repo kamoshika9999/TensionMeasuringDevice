@@ -162,35 +162,51 @@ public class CaliblationController {
 	   		   long[] tmpValue = new long[tryCnt];
 	   		   double tmpAve = 0;
 	   		   double tmpMedian;
-	   		   for(int i=0;i<tryCnt;i++) {
-	   			   System.out.print(".");
-				   if( !hx[chNo].read() ) {
+	   		   boolean okFlg = false;//偏差のMAXが500以下ならばTrue;
+
+	   		   while( !okFlg ) {
+	   			   tmpAve = 0;
+		   		   for(int i=0;i<tryCnt;i++) {
+		   			   System.out.print(".");
 					   if( !hx[chNo].read() ) {
-						   infoText ="Failed";
-						   trFlg=false;
-						   System.out.println("最初の20回測定内でFailed発生");
-						   return;
+						   System.out.println("fail 1st=" + i);
+						   if( !hx[chNo].read() ) {
+							   infoText ="Failed";
+							   trFlg=false;
+							   System.out.println("最初の20回測定内でFailed発生");
+							   return;
+						   }
 					   }
-				   }
-				   tmpValue[i] = hx[chNo].value;
-				   tmpAve += tmpValue[i];
-	   		   }
-	   		   tmpAve /= tryCnt;
+					   tmpValue[i] = hx[chNo].value;
+					   tmpAve += tmpValue[i];
+		   		   }
+		   		   tmpAve /= tryCnt;
 
-	   		   System.out.println();
-	   		   System.out.println("平均tmpAve="+tmpAve);
+		   		   System.out.println();
+		   		   System.out.println("平均tmpAve="+tmpAve);
 
-	   		   //最初の(tryCnt)回の偏差の平均を計算
-	   		   double[] tmpDeviation = new double[tryCnt];
-	   		   for(int i=0;i<tryCnt;i++) {
-	   			   tmpDeviation[i] = Math.abs(tmpValue[i] - tmpAve);
-	   			   System.out.println("|tmpValue["+i+"] - tmpAve|" + Math.abs(tmpValue[i] - tmpAve));
+		   		   //最初の(tryCnt)回の偏差の平均を計算
+		   		   final double MaxDeviation = 500;
+		   		   boolean okDeviation = true;
+		   		   double[] tmpDeviation = new double[tryCnt];
+		   		   for(int i=0;i<tryCnt;i++) {
+		   			   tmpDeviation[i] = Math.abs(tmpValue[i] - tmpAve);
+		   			   //System.out.println("|tmpValue[" + i + "] - tmpAve|" + Math.abs(tmpValue[i] - tmpAve));
+		   			   if( tmpDeviation[i] > MaxDeviation ) {
+		   				   okDeviation = false;
+		   			   }
+		   		   }
+		   		   if( okDeviation ) {
+		   			   okFlg = true;
+		   		   }else {
+		   			   System.out.println("初期偏差大　再評価");
+		   		   }
 	   		   }
 	   		   System.out.println("----初期偏差 確認終了");
 
-	   		   tmpMedian = utilMath.mean(tmpDeviation);//偏差中央値取得
-	   		   if(tmpMedian<100) tmpMedian=100;
-	   		   System.out.println("偏差中央値tmpMedian="+tmpMedian);
+	   		   //tmpMedian = utilMath.mean(tmpDeviation);//偏差中央値取得
+	   		   //if(tmpMedian<10000) tmpMedian=10000;
+	   		   //System.out.println("偏差中央値tmpMedian="+tmpMedian);
 
 	   		   System.out.println();
 
@@ -205,9 +221,9 @@ public class CaliblationController {
 						   return;
 					   }
 				   }
-				   //得た値が最初の20回の中央値の3倍を超えている場合(異常値の破棄)
-				   if( Math.abs( tmpAve - hx[chNo].value) > tmpMedian*3 ) {
-					  System.out.println( "tmpAve="+tmpAve + " tmpMedian(300%)="+tmpMedian*3 );
+				   //得た値が最初の20回の平均との偏差が換算値で5gを超えている場合(異常値の破棄)
+				   if( Math.abs( tmpAve - hx[chNo].value) > hx[chNo].resolution*5) {
+					  System.out.println( "tmpAve="+tmpAve + "差" + (tmpAve - hx[chNo].value) );
 					  System.out.println( "|tmpAve - hx[chNo].value| = " + Math.abs( tmpAve- hx[chNo].value));
 					  overCnt++;
 					  System.out.println("overCnt=" + overCnt);
@@ -282,6 +298,13 @@ public class CaliblationController {
 		   }
 	   };
 	   tr.scheduleAtFixedRate(frameGrabber2, 0, 33, TimeUnit.MILLISECONDS);
+
+	   //画面表示完了まで十分待機する
+	   try {
+		Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 
     }
 }

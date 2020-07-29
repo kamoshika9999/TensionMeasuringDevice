@@ -12,13 +12,15 @@
    <children>
       <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="480.0" prefWidth="640.0">
          <children>
+            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#ff1fb078" height="62.0" layoutX="508.0" layoutY="54.0" stroke="BLACK" strokeType="INSIDE" width="129.0" />
+            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#ff1fb078" height="62.0" layoutX="508.0" layoutY="134.0" stroke="BLACK" strokeType="INSIDE" width="129.0" />
             <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="46.0" layoutX="14.0" layoutY="431.0" stroke="BLACK" strokeType="INSIDE" width="103.0" />
             <Label layoutX="14.0" layoutY="14.0" text="ISIX-T1">
                <font>
                   <Font size="18.0" />
                </font>
             </Label>
-            <Label fx:id="hxvalueLB1" layoutX="303.0" layoutY="50.0" prefHeight="35.0" prefWidth="174.0" text="hx.value">
+            <Label fx:id="hxvalueLB1" layoutX="303.0" layoutY="50.0" prefHeight="35.0" prefWidth="174.0" text="not mesure">
                <font>
                   <Font size="18.0" />
                </font>
@@ -28,7 +30,7 @@
                   <Font size="18.0" />
                </font>
             </Label>
-            <Label fx:id="hxvalueLB2" layoutX="303.0" layoutY="85.0" prefHeight="35.0" prefWidth="174.0" text="hx.value">
+            <Label fx:id="hxvalueLB2" layoutX="303.0" layoutY="85.0" prefHeight="35.0" prefWidth="174.0" text="not mesure">
                <font>
                   <Font size="18.0" />
                </font>
@@ -38,12 +40,12 @@
                   <Font size="18.0" />
                </font>
             </Label>
-            <Button fx:id="getValueBT" layoutX="90.0" layoutY="9.0" mnemonicParsing="false" onAction="#onGetValueBT" prefHeight="39.0" prefWidth="174.0" text="START Mesure">
+            <Button fx:id="getValueBT" disable="true" layoutX="90.0" layoutY="9.0" mnemonicParsing="false" onAction="#onGetValueBT" prefHeight="39.0" prefWidth="174.0" text="START Mesure" visible="false">
                <font>
                   <Font size="14.0" />
                </font>
             </Button>
-            <Label fx:id="hxvalueLB4" layoutX="303.0" layoutY="130.0" prefHeight="35.0" prefWidth="174.0" text="hx.value">
+            <Label fx:id="hxvalueLB4" layoutX="303.0" layoutY="130.0" prefHeight="35.0" prefWidth="174.0" text="not mesure">
                <font>
                   <Font size="18.0" />
                </font>
@@ -53,7 +55,7 @@
                   <Font size="18.0" />
                </font>
             </Label>
-            <Label fx:id="hxvalueLB5" layoutX="303.0" layoutY="172.0" prefHeight="35.0" prefWidth="174.0" text="hx.value">
+            <Label fx:id="hxvalueLB5" layoutX="303.0" layoutY="172.0" prefHeight="35.0" prefWidth="174.0" text="not mesure">
                <font>
                   <Font size="18.0" />
                </font>
@@ -63,18 +65,58 @@
                   <Font size="18.0" />
                </font>
             </Label>
-            <Button fx:id="calibrationMenuBT" layoutX="325.0" layoutY="9.0" mnemonicParsing="false" onAction="#onCaliblationController" prefHeight="39.0" prefWidth="305.0" text="CalibrationMenu">
+            <Button fx:id="calibrationMenuBT" layoutX="527.0" layoutY="9.0" mnemonicParsing="false" onAction="#onCaliblationController" prefHeight="39.0" prefWidth="103.0" text="CalibrationMenu">
                <font>
-                  <Font size="14.0" />
+                  <Font size="11.0" />
                </font></Button>
             <Line endX="524.5" layoutX="115.0" layoutY="128.0" startX="-115.0" stroke="#5909ee" />
             <Line endX="539.0" layoutX="101.0" layoutY="207.0" startX="-100.0" />
             <BorderPane fx:id="chartPane" layoutX="16.0" layoutY="216.0" prefHeight="211.0" prefWidth="613.0" />
-            <Label fx:id="judgmentLB" layoutX="29.0" layoutY="437.0" prefHeight="35.0" prefWidth="73.0" text="judgment">
+            <Label fx:id="judgmentLB" layoutX="44.0" layoutY="437.0" prefHeight="35.0" prefWidth="43.0" text="OK" textFill="#5eff00">
                <font>
-                  <Font size="14.0" />
+                  <Font name="System Bold" size="24.0" />
                </font>
             </Label>
+            <Label fx:id="infoLB" layoutX="264.0" layoutY="431.0" prefHeight="46.0" prefWidth="356.0" text="infomation" />
+            <Button fx:id="resetBT" layoutX="140.0" layoutY="431.0" mnemonicParsing="false" onAction="#onResetBT" prefHeight="46.0" prefWidth="116.0" text="RESET" />
+            <Button fx:id="settingMenuBT" layoutX="406.0" layoutY="9.0" mnemonicParsing="false" onAction="#onSettingMenuBT" prefHeight="39.0" prefWidth="103.0" text="SettingMenu">
+               <font>
+                  <Font size="11.0" />
+               </font>
+            </Button>
+            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#21cdff" height="35.0" layoutX="91.0" layoutY="13.0" stroke="BLACK" strokeType="INSIDE" width="251.0" />
+            <Label layoutX="98.0" layoutY="19.0" maxHeight="20.0" maxWidth="129.0" minHeight="20.0" minWidth="129.0" prefHeight="20.0" prefWidth="129.0" text="MesureCount=">
+               <font>
+                  <Font name="Arial Bold" size="16.0" />
+               </font>
+            </Label>
+            <Label fx:id="mesureCntLB" layoutX="224.0" layoutY="19.0" maxHeight="17.0" maxWidth="80.0" minHeight="17.0" minWidth="80.0" prefHeight="17.0" prefWidth="80.0" text="0" textAlignment="JUSTIFY">
+               <font>
+                  <Font name="Arial Bold" size="14.0" />
+               </font>
+            </Label>
+            <Label fx:id="ch1AveLB" layoutX="406.0" layoutY="60.0" prefHeight="62.0" prefWidth="228.0" text="not mesure">
+               <font>
+                  <Font name="System Bold" size="18.0" />
+               </font>
+            </Label>
+            <Label fx:id="ch2AveLB" layoutX="406.0" layoutY="139.0" prefHeight="62.0" prefWidth="228.0" text="not mesure">
+               <font>
+                  <Font name="System Bold" size="18.0" />
+               </font>
+            </Label>
+            <Label layoutX="514.0" layoutY="59.0" prefHeight="17.0" prefWidth="129.0" text="MesureErrorCount">
+               <font>
+                  <Font size="10.0" />
+               </font>
+            </Label>
+            <Label fx:id="ch1ErrCntLB" layoutX="519.0" layoutY="83.0" prefHeight="17.0" prefWidth="94.0" text="0" textAlignment="RIGHT" />
+            <Label layoutX="514.0" layoutY="139.0" prefHeight="17.0" prefWidth="129.0" text="MesureErrorCount">
+               <font>
+                  <Font size="10.0" />
+               </font>
+            </Label>
+            <Label fx:id="ch2ErrCntLB" layoutX="519.0" layoutY="163.0" prefHeight="17.0" prefWidth="94.0" text="0" textAlignment="RIGHT" />
          </children>
       </AnchorPane>
    </children>

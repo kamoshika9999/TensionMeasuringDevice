@@ -54,15 +54,21 @@ public class HX711 {
                 count++;
             }
         }
-        //System.out.println("HX711.java count="+count);
         pinCLK.setState(PinState.HIGH);
         count = count ^ 0x800000;//最上位Bitをキャンセルしている(なぜか？)
         pinCLK.setState(PinState.LOW);
 
-        value = count;
-        //System.out.println(value);
-        //weight = (value - emptyValue)*((calibrationWeight - emptyWeight)/(calibrationValue - emptyValue));
-        weight = (value-emptyValue)*resolution;
+        if( count < 8700000 ) {
+        	value = -1;
+        }else {
+        	value = count;
+        }
+
+        if( calibrationWeight == 0.0 ) {
+        	weight = 0.0;
+        }else {
+        	weight = (value-emptyValue)/resolution*-1;
+        }
         return true;
     }
 

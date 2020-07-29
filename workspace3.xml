@@ -48,10 +48,8 @@
         </jar>
     </target>
 
-    <target name="remotedebug" depends="create_run_jar">
+    <target name="remotedebug">
         <echo>"Starting ${raspberrypi}:${raspberryfolder}/${jar.filename} in debug mode"</echo>
         <sshexec trust="true" host="${raspberrypi}" username="${username}" password="${password}" failonerror="true" usepty="true" command="DISPLAY=:0 java -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=*:4001,suspend=y -classpath ${raspberryfolder} -jar ${raspberryfolder}/test.jar" />
     </target>
-
-
 </project>

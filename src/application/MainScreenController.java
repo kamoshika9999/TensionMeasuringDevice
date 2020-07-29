@@ -266,7 +266,7 @@ public class MainScreenController {
 		Platform.runLater( () ->tention_dataset.getSeries(1).clear());
 		Platform.runLater( () ->mesureCntLB.setText(String.valueOf(shotCnt)));
 		Platform.runLater(() ->this.ch1ErrCntLB.setText(String.valueOf( mesureErrCnt[0] )));
-		Platform.runLater(() ->this.ch2ErrCntLB.setText(String.valueOf( mesureErrCnt[1] )));		
+		Platform.runLater(() ->this.ch2ErrCntLB.setText(String.valueOf( mesureErrCnt[1] )));
 
     }
 
@@ -291,13 +291,13 @@ public class MainScreenController {
 	    	//----------デバッグ用-------
 	    	//mesureTreshFlg = true;
 	    	//---------------------------
-	    	
+
 	    	if( Math.abs(result[0][1]) > 10 || Math.abs(result[1][1]) > 10 ) {
 	    		mesureTreshFlg = true;
 	    	}else {
 	    		mesureTreshFlg = false;
 	    	}
-	    	
+
 
 	    	if( !mesureStopFlg ) {
 	    		shotCnt++;
@@ -328,10 +328,16 @@ public class MainScreenController {
 		    		Platform.runLater(() ->ch2AveLB.setText(String.format("%.0f",ch2_ave/shotCnt)));
 
 		    		final double rangeRatio = 0.4;
-
+		    		double minRange = ch1_min<ch2_min?ch1_min-Math.abs(ch1_min*rangeRatio):ch2_min-Math.abs(ch2_min*rangeRatio);
+		    		double maxRange = ch1_max>ch2_max?ch1_max+Math.abs(ch1_max*rangeRatio):ch2_max+Math.abs(ch2_max*rangeRatio);
+		    		if( maxRange < minRange) {
+		    			maxRange = 300;
+		    			minRange = -300;
+		    		}
+		    		final double maxRange_ = maxRange;
+		    		final double minRange_ = minRange;
 		    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getRangeAxis()).
-							setRange(ch1_min<ch2_min?ch1_min-Math.abs(ch1_min*rangeRatio):ch2_min-Math.abs(ch2_min*rangeRatio),
-									ch1_max>ch2_max?ch1_max+Math.abs(ch1_max*rangeRatio):ch2_max+Math.abs(ch2_max*rangeRatio)));
+							setRange(minRange_,maxRange_));
 
 		    		//System.out.println("ChartRangeMax="+(ch1_max>ch2_max?ch1_max+Math.abs(ch1_max*rangeRatio):ch2_max+Math.abs(ch2_max*rangeRatio)));
 		    	}else {

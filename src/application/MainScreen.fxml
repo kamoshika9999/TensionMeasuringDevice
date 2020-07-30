@@ -77,7 +77,7 @@
                   <Font name="System Bold" size="24.0" />
                </font>
             </Label>
-            <Label fx:id="infoLB" layoutX="264.0" layoutY="431.0" prefHeight="46.0" prefWidth="356.0" text="infomation" />
+            <Label fx:id="infoLB" layoutX="264.0" layoutY="431.0" prefHeight="46.0" prefWidth="260.0" text="infomation" />
             <Button fx:id="resetBT" layoutX="140.0" layoutY="431.0" mnemonicParsing="false" onAction="#onResetBT" prefHeight="46.0" prefWidth="116.0" text="RESET" />
             <Button fx:id="settingMenuBT" layoutX="406.0" layoutY="9.0" mnemonicParsing="false" onAction="#onSettingMenuBT" prefHeight="39.0" prefWidth="103.0" text="SettingMenu">
                <font>
@@ -117,6 +117,11 @@
                </font>
             </Label>
             <Label fx:id="ch2ErrCntLB" layoutX="519.0" layoutY="163.0" prefHeight="17.0" prefWidth="94.0" text="0" textAlignment="RIGHT" />
+            <Button fx:id="shutdownBT" layoutX="521.0" layoutY="431.0" mnemonicParsing="false" onAction="#onShutdownBT" prefHeight="46.0" prefWidth="116.0" text="SHUTDOWN">
+               <font>
+                  <Font size="10.0" />
+               </font>
+            </Button>
          </children>
       </AnchorPane>
    </children>

@@ -44,6 +44,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 
 
@@ -85,6 +86,8 @@ public class MainScreenController {
     private Label ch1ErrCntLB;
     @FXML
     private Label ch2ErrCntLB;
+    @FXML
+    private Button shutdownBT;
 
     //HX711のチャンネル数
 	static final int ch_cnt =2;
@@ -231,6 +234,7 @@ public class MainScreenController {
 		}
 		Scene scene = new Scene(root);
 		Stage stage = new Stage();
+		stage.initStyle(StageStyle.UNDECORATED);
 		stage.setScene(scene);
 		stage.setResizable(false);
 
@@ -371,6 +375,14 @@ public class MainScreenController {
 
     }
 
+    /**
+     * 終了
+     * @param event
+     */
+    @FXML
+    void onShutdownBT(ActionEvent event) {
+    	System.exit(0);
+    }
     /**
      * 初期化
      * @throws InterruptedException

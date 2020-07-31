@@ -7,8 +7,7 @@
 <?import javafx.scene.shape.Line?>
 <?import javafx.scene.text.Font?>
 
-
-<AnchorPane maxHeight="480.0" maxWidth="640.0" minHeight="480.0" minWidth="640.0" prefHeight="480.0" prefWidth="640.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/11.0.1">
+<AnchorPane maxHeight="480.0" maxWidth="640.0" minHeight="480.0" minWidth="640.0" prefHeight="480.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.settingMenu">
    <children>
       <Button fx:id="settingSaveBT" layoutX="37.0" layoutY="437.0" mnemonicParsing="false" onAction="#onCalibSaveBT" prefHeight="39.0" prefWidth="138.0" text="SAVE">
          <font>
@@ -20,17 +19,17 @@
             <Font size="18.0" />
          </font>
       </Button>
-      <TextField fx:id="ch1Ratio" layoutX="175.0" layoutY="172.0" prefHeight="39.0" prefWidth="174.0" promptText="9.00" text="0.0">
+      <TextField fx:id="ch1Ratio" layoutX="175.0" layoutY="172.0" prefHeight="39.0" prefWidth="174.0" promptText="9.00" text="10.0">
          <font>
             <Font size="18.0" />
          </font>
       </TextField>
-      <TextField fx:id="ch1MaxError" layoutX="175.0" layoutY="86.0" prefHeight="39.0" prefWidth="174.0" promptText="9.00" text="0">
+      <TextField fx:id="ch1MaxError" layoutX="175.0" layoutY="86.0" prefHeight="39.0" prefWidth="174.0" promptText="9.00" text="180">
          <font>
             <Font size="18.0" />
          </font>
       </TextField>
-      <TextField fx:id="ch1MinError" layoutX="175.0" layoutY="128.0" prefHeight="39.0" prefWidth="174.0" promptText="9.00" text="0">
+      <TextField fx:id="ch1MinError" layoutX="175.0" layoutY="128.0" prefHeight="39.0" prefWidth="174.0" promptText="9.00" text="50">
          <font>
             <Font size="18.0" />
          </font>
@@ -55,17 +54,17 @@
             <Font name="System Bold" size="24.0" />
          </font>
       </Label>
-      <TextField fx:id="ch2Ratio" layoutX="175.0" layoutY="360.0" prefHeight="39.0" prefWidth="174.0" promptText="9.00" text="0.0">
+      <TextField fx:id="ch2Ratio" layoutX="175.0" layoutY="360.0" prefHeight="39.0" prefWidth="174.0" promptText="9.00" text="10.0">
          <font>
             <Font size="18.0" />
          </font>
       </TextField>
-      <TextField fx:id="ch2MaxError" layoutX="175.0" layoutY="274.0" prefHeight="39.0" prefWidth="174.0" promptText="9.00">
+      <TextField fx:id="ch2MaxError" layoutX="175.0" layoutY="274.0" prefHeight="39.0" prefWidth="174.0" promptText="0" text="180">
          <font>
             <Font size="18.0" />
          </font>
       </TextField>
-      <TextField fx:id="ch2MinError" layoutX="175.0" layoutY="316.0" prefHeight="39.0" prefWidth="174.0" promptText="9.00" text="0">
+      <TextField fx:id="ch2MinError" layoutX="175.0" layoutY="316.0" prefHeight="39.0" prefWidth="174.0" promptText="9.00" text="50">
          <font>
             <Font size="18.0" />
          </font>
@@ -86,12 +85,12 @@
             <Font name="System Bold" size="14.0" />
          </font>
       </Label>
-      <Label fx:id="ch1MaxWarning" layoutX="364.0" layoutY="88.0" prefHeight="35.0" prefWidth="117.0" text="MIN Tention">
+      <Label fx:id="ch1MaxWarning" layoutX="364.0" layoutY="88.0" prefHeight="35.0" prefWidth="130.0" text="Max Tention * Ratio">
          <font>
             <Font size="14.0" />
          </font>
       </Label>
-      <Label fx:id="ch1MinWarning" layoutX="364.0" layoutY="130.0" prefHeight="35.0" prefWidth="117.0" text="MIN Tention">
+      <Label fx:id="ch1MinWarning" layoutX="364.0" layoutY="130.0" prefHeight="35.0" prefWidth="130.0" text="Min Tention * Ratio">
          <font>
             <Font size="14.0" />
          </font>
@@ -101,12 +100,12 @@
             <Font name="System Bold" size="14.0" />
          </font>
       </Label>
-      <Label fx:id="ch2MaxWarning" layoutX="364.0" layoutY="277.0" prefHeight="35.0" prefWidth="117.0" text="MIN Tention">
+      <Label fx:id="ch2MaxWarning" layoutX="364.0" layoutY="277.0" prefHeight="35.0" prefWidth="130.0" text="MIax Tention * Ratio">
          <font>
             <Font size="14.0" />
          </font>
       </Label>
-      <Label fx:id="ch2MinWarning" layoutX="364.0" layoutY="319.0" prefHeight="35.0" prefWidth="117.0" text="MIN Tention">
+      <Label fx:id="ch2MinWarning" layoutX="364.0" layoutY="319.0" prefHeight="35.0" prefWidth="117.0" text="Min Tention * Ratio">
          <font>
             <Font size="14.0" />
          </font>

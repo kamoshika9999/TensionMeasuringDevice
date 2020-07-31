@@ -77,4 +77,80 @@ public class csvSaveLoad {
 		return true;
 
 	}
+
+	public static boolean settingValueSave() {
+		/*
+	    public static double ch1RatioValue;
+	    public static long ch1MaxErrorValue;
+	    public static long ch1MinErrorValue;
+	    public static double ch2RatioValue;
+	    public static long ch2MaxErrorValue;
+	    public static long ch2MinErrorValue;
+	    */
+
+		String[] headStr = new String[6];
+		headStr[0]="ch1RatioValue";
+		headStr[1]="ch1MaxErrorValue";
+		headStr[2]="ch1MinErrorValue";
+		headStr[3]="ch2RatioValue";
+		headStr[4]="ch2MaxErrorValue";
+		headStr[5]="ch2MinErrorValue";
+
+		CSVWriter writer;
+		try {
+			writer = new CSVWriter(new FileWriter("./init2.csv"));
+	        writer.writeNext(headStr);  //ヘッダー書き込み
+
+	        String[] subStr = new String[6];
+
+	        subStr[0] = String.valueOf( settingMenu.ch1RatioValue );
+	        subStr[1] = String.valueOf( settingMenu.ch1MaxErrorValue );
+	        subStr[2] = String.valueOf( settingMenu.ch1MinErrorValue );
+	        subStr[3] = String.valueOf( settingMenu.ch2RatioValue );
+	        subStr[4] = String.valueOf( settingMenu.ch2MaxErrorValue );
+	        subStr[5] = String.valueOf( settingMenu.ch2MinErrorValue );
+
+        	writer.writeNext(subStr);
+	        writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
+	}
+
+	public static boolean settingValueLoad() {
+		/*
+	    public static double ch1RatioValue;
+	    public static long ch1MaxErrorValue;
+	    public static long ch1MinErrorValue;
+	    public static double ch2RatioValue;
+	    public static long ch2MaxErrorValue;
+	    public static long ch2MinErrorValue;
+	    */
+		try {
+			FileReader fr = new FileReader("./init2.csv");
+			CSVReader reader=new CSVReader( fr );
+
+			String[] headStr = reader.readNext();//ヘッダー読み込み
+			String[] subStr = reader.readNext();//キャリブレーションデータ読み込み
+			reader.close();
+
+			settingMenu.ch1RatioValue = Double.valueOf(subStr[0]);
+			settingMenu.ch1MaxErrorValue = Long.valueOf(subStr[1]);
+			settingMenu.ch1MinErrorValue = Long.valueOf(subStr[2]);
+			settingMenu.ch2RatioValue = Double.valueOf(subStr[3]);
+			settingMenu.ch2MaxErrorValue = Long.valueOf(subStr[4]);
+			settingMenu.ch2MinErrorValue = Long.valueOf(subStr[5]);
+
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
+	}
+
 }

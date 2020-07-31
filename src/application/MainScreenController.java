@@ -43,6 +43,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.media.MediaPlayer;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -126,6 +127,10 @@ public class MainScreenController {
 	//スレッドオブジェクト
 	ScheduledExecutorService tr = Executors.newSingleThreadScheduledExecutor();
 	Runnable tentionMesure;
+
+	//メディアプレイヤー
+	MediaPlayer mp;
+	final String wavFileString = "117.wav";
 
     /**
      *
@@ -372,7 +377,21 @@ public class MainScreenController {
      */
     @FXML
     void onSettingMenuBT(ActionEvent event) {
+		FXMLLoader loader = new FXMLLoader(getClass().getResource("settingMenu.fxml"));
+		AnchorPane root = null;
+		try {
+			root = (AnchorPane) loader.load();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		Scene scene = new Scene(root);
+		Stage stage = new Stage();
+		stage.initStyle(StageStyle.UNDECORATED);
+		stage.setScene(scene);
+		stage.setResizable(false);
 
+		//設定ウィンドウを開く
+		stage.showAndWait();
     }
 
     /**
@@ -406,6 +425,8 @@ public class MainScreenController {
         		CaliblationController.calibValue,
         		CaliblationController.calibWeight,
         		CaliblationController.resolution);
+        //設定データーロード
+        csvSaveLoad.settingValueLoad();
 
         for(int i=0;i<ch_cnt;i++) {
 	    	hx[i].emptyValue =  CaliblationController.emptyValue[i];

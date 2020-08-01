@@ -7,6 +7,7 @@ import java.net.URL;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -88,6 +89,8 @@ public class MainScreenController {
     @FXML
     private Button shutdownBT;
 
+    //デバッグフラグ
+    boolean debugFlg = true;
     //HX711のチャンネル数
 	static final int ch_cnt =2;
     //HX711 接続ピンリスト BCM番号で指定 「gpio readall」 で物理ピンと確認すること
@@ -153,17 +156,16 @@ public class MainScreenController {
     		for(int j=0;j<rpeetCnt;j++) {
     			for(int i=0;i<ch_cnt;i++) {
         			if( hx[i].calibrationWeight > 0 ) {
-				        //hx[i].read();
+        				if( !debugFlg ) hx[i].read();
 				        int cnt = 0;
-				        /*
+				        
 				        while( hx[i].value == -1) {
-				        	hx[i].read();
+				        	if( !debugFlg ) hx[i].read();
 				        	cnt++;
 				        	if( cnt > 10 ) {
 				        		break;
 				        	}
 				        }
-				        */
 				        if( cnt <=10 ) {
 					        tmpValue[i][j] = hx[i].value;
 					        if( maxValue[i] < hx[i].value) maxValue[i] = hx[i].value;
@@ -210,25 +212,26 @@ public class MainScreenController {
 
     	}
     	mesureFlg = false;
-    	/*　
-    	//デバッグ用---------------
-        Random rand = new Random();
-        int num = rand.nextInt(30)-15;
-    	result[0][1] = 98 + num;
-    	num = rand.nextInt(30)-15;
-    	result[1][1] = 120 + num;
-    	double resolution = 3204;
-    	result[0][0] = result[0][1] * resolution;
-    	result[1][0] = result[1][1] * resolution;
 
-    	try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// TODO 自動生成された catch ブロック
-			e.printStackTrace();
-		}
+    	//デバッグ用---------------
+    	if( debugFlg ) {
+	        Random rand = new Random();
+	        int num = rand.nextInt(30)-15;
+	    	result[0][1] = 98 + num;
+	    	num = rand.nextInt(30)-15;
+	    	result[1][1] = 120 + num;
+	    	double resolution = 3204;
+	    	result[0][0] = result[0][1] * resolution;
+	    	result[1][0] = result[1][1] * resolution;
+
+	    	try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+    	}
     	//-------------------------
-    	 */
+
     	return result;
     }
 
@@ -340,7 +343,12 @@ public class MainScreenController {
 		    		//データーセットは表示の都合でDouble値で格納する
 		    		Platform.runLater( () ->tention_dataset.getSeries(0).add((double)chartTime/1000.0,result[0][1]));
 		    		Platform.runLater( () ->tention_dataset.getSeries(1).add((double)chartTime/1000.0,result[1][1]));
-
+		    		//デバッグ用-------------------------------------------------------------------------------------
+		    		if( debugFlg ) {
+		    	        System.out.println("Object type: " + tention_dataset.getClass() +
+		    	          ", size: " + InstrumentationAgent.getObjectSize(tention_dataset) + " bytes");
+		    		}
+		    		//-----------------------------------------------------------------------------------------------
 		    		//経過時間表示
 		    		Platform.runLater( () ->mesureCntLB.setText( String.format("%d H %d M %d S",
 		    				(int)Math.floor( (double)chartTime/1000.0/3600.0 ),

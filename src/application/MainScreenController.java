@@ -210,7 +210,7 @@ public class MainScreenController {
 
     	}
     	mesureFlg = false;
-    	/*
+    	/*　
     	//デバッグ用---------------
         Random rand = new Random();
         int num = rand.nextInt(30)-15;

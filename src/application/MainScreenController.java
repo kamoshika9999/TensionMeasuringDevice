@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import java.awt.Stroke;
 import java.io.IOException;
 import java.net.URL;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -46,9 +47,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.media.MediaPlayer;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-
-
-
 
 public class MainScreenController {
 	@FXML
@@ -114,6 +112,7 @@ public class MainScreenController {
     double ch1_ave = 0;
     double ch2_ave = 0;
     long shotCnt = 0;
+    Timestamp startTime;
 
     //計測中フラグ
     boolean mesureFlg =false;
@@ -135,6 +134,7 @@ public class MainScreenController {
     /**
      *
      * @return  double[ch][0] hx.value   double[ch][1] hx.weight
+     * @throws InterruptedException
      */
     public double[][] getLoadCellValue(){
     	mesureFlg = true;
@@ -153,8 +153,9 @@ public class MainScreenController {
     		for(int j=0;j<rpeetCnt;j++) {
     			for(int i=0;i<ch_cnt;i++) {
         			if( hx[i].calibrationWeight > 0 ) {
-				        hx[i].read();
+				        //hx[i].read();
 				        int cnt = 0;
+				        /*
 				        while( hx[i].value == -1) {
 				        	hx[i].read();
 				        	cnt++;
@@ -162,6 +163,7 @@ public class MainScreenController {
 				        		break;
 				        	}
 				        }
+				        */
 				        if( cnt <=10 ) {
 					        tmpValue[i][j] = hx[i].value;
 					        if( maxValue[i] < hx[i].value) maxValue[i] = hx[i].value;
@@ -203,16 +205,30 @@ public class MainScreenController {
 	    			result[i][1] = aveWeight[i];
 	    		}
     		}
-    		//System.out.println("CH1Resolution="+hx[0].resolution);
-    		//System.out.println("CH1 MAX="+maxValue[0]+" CH1 MIN="+minValue[0]+"CH1 Weight="+aveWeight[0]);
-
-
-
     	}catch(Exception e) {
     		System.out.println(e);
 
     	}
     	mesureFlg = false;
+    	/*
+    	//デバッグ用---------------
+        Random rand = new Random();
+        int num = rand.nextInt(30)-15;
+    	result[0][1] = 98 + num;
+    	num = rand.nextInt(30)-15;
+    	result[1][1] = 120 + num;
+    	double resolution = 3204;
+    	result[0][0] = result[0][1] * resolution;
+    	result[1][0] = result[1][1] * resolution;
+
+    	try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO 自動生成された catch ブロック
+			e.printStackTrace();
+		}
+    	//-------------------------
+    	 */
     	return result;
     }
 
@@ -249,7 +265,6 @@ public class MainScreenController {
 
 		tr = Executors.newSingleThreadScheduledExecutor();
 		tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
-
     }
 
     /**
@@ -267,6 +282,9 @@ public class MainScreenController {
         ch1_ave = 0;
         ch2_ave = 0;
         shotCnt=0;
+
+        startTime = new Timestamp(System.currentTimeMillis());
+
         for(int i=0;i<ch_cnt;i++) {
         	mesureErrCnt[i] = 0;
         }
@@ -277,6 +295,12 @@ public class MainScreenController {
 		Platform.runLater(() ->this.ch1ErrCntLB.setText(String.valueOf( mesureErrCnt[0] )));
 		Platform.runLater(() ->this.ch2ErrCntLB.setText(String.valueOf( mesureErrCnt[1] )));
 
+		//経過時間表示
+		Platform.runLater( () ->mesureCntLB.setText( String.format("%d H %d M %d S",
+				(int)Math.floor( (double)0/1000.0/3600.0 ),
+				(int)Math.floor( ((double)0/1000.0/60.0) % 60),
+				(int)(0/1000) % 60
+				)));
     }
 
     private void mesure() {
@@ -297,9 +321,6 @@ public class MainScreenController {
 		    	Platform.runLater(() ->hxvalueLB5.setText("Mesure Error"));
 
 	    	}
-	    	//----------デバッグ用-------
-	    	//mesureTreshFlg = true;
-	    	//---------------------------
 
 	    	if( Math.abs(result[0][1]) > 10 || Math.abs(result[1][1]) > 10 ) {
 	    		mesureTreshFlg = true;
@@ -310,19 +331,26 @@ public class MainScreenController {
 
 	    	if( !mesureStopFlg ) {
 	    		shotCnt++;
-	    		Platform.runLater( () ->mesureCntLB.setText(String.valueOf(shotCnt)));
-
 
 		    	if( result[0][0] != -1 ) {
 		    		Platform.runLater(() ->infoLB.setText("Measuring"));
 
 		    		//チャート更新
-		    		Platform.runLater( () ->tention_dataset.getSeries(0).add(shotCnt,result[0][1]));
-		    		Platform.runLater( () ->tention_dataset.getSeries(1).add(shotCnt,result[1][1]));
+		    		long chartTime = System.currentTimeMillis() - startTime.getTime();//経過時間(mSec単位)
+		    		//データーセットは表示の都合でDouble値で格納する
+		    		Platform.runLater( () ->tention_dataset.getSeries(0).add((double)chartTime/1000.0,result[0][1]));
+		    		Platform.runLater( () ->tention_dataset.getSeries(1).add((double)chartTime/1000.0,result[1][1]));
 
+		    		//経過時間表示
+		    		Platform.runLater( () ->mesureCntLB.setText( String.format("%d H %d M %d S",
+		    				(int)Math.floor( (double)chartTime/1000.0/3600.0 ),
+		    				(int)Math.floor( ((double)chartTime/1000.0/60.0) % 60),
+		    				(int)(chartTime/1000) % 60
+		    				)));
 
+		    		//データーセットはdouble値 チャート表示は整数とする為、変換表示させる
 		    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getDomainAxis()).
-							setRange( shotCnt<=2000 ? 0 : shotCnt-2000,shotCnt<1?1:shotCnt ));
+							setRange( (chartTime/1000)<=600 ? 0 : (chartTime/1000)-600,(chartTime/1000)<1?1:(chartTime/1000) ));
 
 		    		//データー追加
 		    		ch1_tention.add(result[0][1]);
@@ -366,9 +394,7 @@ public class MainScreenController {
 		    	Platform.runLater(() ->hxvalueLB4.setText(String.format("%.0f",0.0)));
 		    	Platform.runLater(() ->hxvalueLB5.setText(String.format("%.0f",0.0)));
 		    	Platform.runLater(() ->infoLB.setText("Mesure Stop"));
-
 	    	}
-
     }
 
     /**
@@ -428,12 +454,17 @@ public class MainScreenController {
         //設定データーロード
         csvSaveLoad.settingValueLoad();
 
+        //測定データリセット実行
+        onResetBT(null);
+
         for(int i=0;i<ch_cnt;i++) {
 	    	hx[i].emptyValue =  CaliblationController.emptyValue[i];
 	    	hx[i].calibrationValue = CaliblationController.calibValue[i];
 	    	hx[i].calibrationWeight =CaliblationController.calibWeight[i];
 	    	hx[i].resolution = CaliblationController.resolution[i];
     	}
+
+
 
         //チャートオブジェクト作成
         chart_tention = chartFact();
@@ -461,11 +492,12 @@ public class MainScreenController {
  	   };
 	   tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
 
+
     }
     private JFreeChart chartFact() {
     	XYSeriesCollection ch1_tention;
 		ch1_tention = getChartData();
-		JFreeChart chart = createInitChart("Tention","(g)","n",ch1_tention ,0.0,300);
+		JFreeChart chart = createInitChart("Tention","(g)","ElapsedTime(sec)",ch1_tention ,0.0,300);
 		ChartViewer chV = new ChartViewer(chart);
         chV.addChartMouseListener( new ChartMouseListenerFX() {
 				@Override
@@ -552,6 +584,8 @@ public class MainScreenController {
         renderer.setDefaultItemLabelGenerator(generator);
         renderer.setDefaultItemLabelsVisible(true);
          */
+
+
         return chart;
 
     }

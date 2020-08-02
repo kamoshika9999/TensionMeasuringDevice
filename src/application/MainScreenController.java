@@ -100,7 +100,7 @@ public class MainScreenController {
     private Label ch2MinLB;
 
     //デバッグフラグ
-    public static boolean debugFlg = true;
+    public static boolean debugFlg = false;
     //HX711のチャンネル数
 	static final int ch_cnt =2;
     //HX711 接続ピンリスト BCM番号で指定 「gpio readall」 で物理ピンと確認すること
@@ -304,7 +304,7 @@ public class MainScreenController {
     	resetExFlg = true;
 
     	if( shotCnt > 1) {
-			if( !csvSaveLoad.saveDataSet(tention_dataset, startTime) ) {
+			if( !csvSaveLoad.saveDataSet(tention_dataset, startTime,ch1_max,ch1_min,ch1_ave,ch2_max,ch2_min,ch2_ave,shotCnt) ) {
 				System.out.println("データーセット保存異常");
 				Platform.runLater( () ->this.infoLB.setText("データーセット保存異常"));
 			}
@@ -338,7 +338,7 @@ public class MainScreenController {
 				(int)Math.floor( ((double)0/1000.0/60.0) % 60),
 				(int)(0/1000) % 60
 				)));
-		
+
     	resetExFlg = false;
     }
 

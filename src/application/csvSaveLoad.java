@@ -203,12 +203,15 @@ public class csvSaveLoad {
 	}
 
 	//データーセットを保存する
-	public static boolean saveDataSet(XYSeriesCollection dataSet,Timestamp startTime) {
+	public static boolean saveDataSet(
+			XYSeriesCollection dataSet,Timestamp startTime,
+			double ch1_max, double ch1_min, double ch1_ave,
+			double ch2_max, double ch2_min, double ch2_ave, long shotCnt) {
 		Timestamp EndTime = new Timestamp(System.currentTimeMillis());
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH'h'mm'm'ss's'");
         String StartDate = sdf.format(startTime);
         String EndDate = sdf.format(EndTime);
-        
+
         //デバッグコード-----------------------------------------------------------------------------------------------
         if( MainScreenController.debugFlg) {
 	        String fileName = "sample2.wav";
@@ -223,7 +226,7 @@ public class csvSaveLoad {
 	        System.out.println(inputFilePath);
         }
         //-------------------------------------------------------------------------------------------------------------
-        
+
         CSVWriter writer;
 		try {
 	        //実行するjarのフォルダを得る-----------------------------------------------------------------------------
@@ -235,14 +238,14 @@ public class csvSaveLoad {
 			}
 			String folderPath = jarFile.getParent() + File.separator;
 			//--------------------------------------------------------------------------------------------------------
-			
+
 			File folder = new File(folderPath + "tentionlog");
 	    	if( !folder.exists()) {
 	    		if( !folder.mkdir() ) {
 	    			System.out.println("tentionlogフォルダ作成失敗");
 	    		}
 	    	}
-	    	writer = new CSVWriter(new FileWriter(folderPath+"tentionlog/"+StartDate + ">>>" + EndDate + ".csv"));
+	    	writer = new CSVWriter(new FileWriter(folderPath+"tentionlog/"+StartDate + "---" + EndDate + ".csv"));
 
 			//キャリブレーションデーター
 			writer.writeNext(new String[] { "[CalibrationData]" });
@@ -306,9 +309,37 @@ public class csvSaveLoad {
     		subStr[1]=EndDate;
         	writer.writeNext(subStr);
         	//統計量
-        	
-        	
-        	
+        	/*
+			    public double ch1_max = 0;
+			    public double ch2_max = 0;
+			    public double ch1_min = 9999;
+			    public double ch2_min = 9999;
+			    public double ch1_ave = 0;
+			    public double ch2_ave = 0;
+			    public long shotCnt = 0;
+        	 */
+			writer.writeNext(new String[] { "" });
+			writer.writeNext(new String[] { "[Statistics]" });
+        	headStr = new String[7];
+    		headStr[0]="ch1_max";
+    		headStr[1]="ch1_min";
+    		headStr[2]="ch1_ave";
+    		headStr[3]="ch2_max";
+    		headStr[4]="ch2_min";
+    		headStr[5]="ch2_ave";
+    		headStr[6]="mesureCount";
+	        writer.writeNext(headStr);  //ヘッダー書き込み
+
+	        subStr = new String[7];
+    		subStr[0]=String.valueOf( ch1_max );
+    		subStr[1]=String.valueOf( ch1_min );
+    		subStr[2]=String.valueOf( ch1_ave );
+    		subStr[3]=String.valueOf( ch2_max );
+    		subStr[4]=String.valueOf( ch2_min );
+    		subStr[5]=String.valueOf( ch2_ave );
+    		subStr[6]=String.valueOf( shotCnt );
+        	writer.writeNext(subStr);
+
         	//生データー
 			writer.writeNext(new String[] { "" });
 			writer.writeNext(new String[] { "[RawData]" });

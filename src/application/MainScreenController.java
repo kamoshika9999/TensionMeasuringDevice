@@ -2,7 +2,9 @@ package application;
 
 import java.awt.BasicStroke;
 import java.awt.Stroke;
+import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -46,7 +48,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.AudioClip;
 import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -140,7 +142,7 @@ public class MainScreenController {
 	Runnable tentionMesure;
 
 	//メディアプレイヤー
-	MediaPlayer mp;
+	AudioClip mp_error;
 	final String wavFileString = "117.wav";
 
 	//各機能実行中フラグ
@@ -451,6 +453,10 @@ public class MainScreenController {
 		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
 		    			Platform.runLater(() ->judgmentLB.setText("NG"));
 		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
+		    			
+		    			if( !mp_error.isPlaying() ) {
+			    			mp_error.play();
+		    			}
 		    		}
 
 
@@ -555,6 +561,8 @@ public class MainScreenController {
 
 		//設定ウィンドウを開く
 		stage.showAndWait();
+		
+		debugFlg = settingMenu.demoMode;
 
 		tr = Executors.newSingleThreadScheduledExecutor();
 		tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
@@ -605,6 +613,15 @@ public class MainScreenController {
 	    	hx[i].resolution = CaliblationController.resolution[i];
     	}
 
+        //メディアプレイヤー準備
+		File jarFile = null;
+		try {
+			jarFile = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+		String filePath = jarFile.getParent() + File.separator + wavFileString;
+		mp_error = new AudioClip(new File(filePath).toURI().toString());
 
 
         //チャートオブジェクト作成

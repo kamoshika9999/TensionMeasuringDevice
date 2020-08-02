@@ -333,10 +333,10 @@ public class csvSaveLoad {
 	        subStr = new String[7];
     		subStr[0]=String.valueOf( ch1_max );
     		subStr[1]=String.valueOf( ch1_min );
-    		subStr[2]=String.valueOf( ch1_ave );
+    		subStr[2]=String.valueOf( ch1_ave / shotCnt);
     		subStr[3]=String.valueOf( ch2_max );
     		subStr[4]=String.valueOf( ch2_min );
-    		subStr[5]=String.valueOf( ch2_ave );
+    		subStr[5]=String.valueOf( ch2_ave / shotCnt);
     		subStr[6]=String.valueOf( shotCnt );
         	writer.writeNext(subStr);
 

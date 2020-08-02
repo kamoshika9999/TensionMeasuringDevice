@@ -94,7 +94,7 @@ public class CaliblationController {
     	csvSaveLoad.calibDataCsvWrite(emptyValue, calibValue, calibWeight,resolution);
 
     	//ロードセルオブジェクトのパラメータを更新
-    	for(int i=0;i<MainScreenController.ch_cnt;i++) {
+    	for(int i=0;i<2;i++) {
 	    	MainScreenController.hx[i].emptyValue =  CaliblationController.emptyValue[i];
 	    	MainScreenController.hx[i].calibrationValue = CaliblationController.calibValue[i];
 	    	MainScreenController.hx[i].calibrationWeight =CaliblationController.calibWeight[i];

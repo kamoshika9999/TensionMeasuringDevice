@@ -46,8 +46,8 @@ public class csvSaveLoad {
 			writer = new CSVWriter(new FileWriter(folderPath+"init.csv"));
 	        writer.writeNext(headStr);  //ヘッダー書き込み
 
-        	String[] subStr= new String[ 4*MainScreenController.ch_cnt ];
-	        for(int i=0;i<MainScreenController.ch_cnt;i++) {
+        	String[] subStr= new String[ 4*2 ];
+	        for(int i=0;i<2;i++) {
 	        	subStr[i*4] = String.format("%d", emptyValue_[i]);
 	        	subStr[i*4+1] = String.format("%d", calibValue_[i]);
 	        	subStr[i*4+2] = String.format("%f",weight_[i]);
@@ -81,12 +81,12 @@ public class csvSaveLoad {
 			String[] subStr = reader.readNext();//キャリブレーションデータ読み込み
 			reader.close();
 
-			for(int i=0;i<MainScreenController.ch_cnt;i++) {
+			for(int i=0;i<2;i++) {
 				System.out.println(headStr.length + " " + headStr[i]);
 				System.out.println(subStr.length + " " + subStr[i]);
 			}
 
-			for(int i=0;i<MainScreenController.ch_cnt;i++) {
+			for(int i=0;i<2;i++) {
 				CaliblationController.emptyValue[i] = Long.valueOf(subStr[i*4+0]);
 				CaliblationController.calibValue[i] = Long.valueOf(subStr[i*4+1]);
 				CaliblationController.calibWeight[i] = Double.valueOf(subStr[i*4+2]);
@@ -262,7 +262,7 @@ public class csvSaveLoad {
 
 	        writer.writeNext(headStr);  //ヘッダー書き込み
 
-        	String[] subStr= new String[ 4*MainScreenController.ch_cnt ];
+        	String[] subStr= new String[ 4*2 ];
 	        for(int i=0;i<2;i++) {
 	        	subStr[i*4] = String.format("%d", CaliblationController.emptyValue[i]);
 	        	subStr[i*4+1] = String.format("%d", CaliblationController.calibValue[i]);

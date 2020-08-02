@@ -103,15 +103,13 @@ public class MainScreenController {
 
     //デバッグフラグ
     public static boolean debugFlg = false;
-    //HX711のチャンネル数
-	static final int ch_cnt =2;
     //HX711 接続ピンリスト BCM番号で指定 「gpio readall」 で物理ピンと確認すること
 	final Pin[] pinNoDAT = {RaspiPin.GPIO_21,RaspiPin.GPIO_23};
 	final Pin[] pinNoCLK = {RaspiPin.GPIO_22,RaspiPin.GPIO_24};
 	//HX711 オブジェクト
-	GpioPinDigitalInput[] pinHXDAT = new GpioPinDigitalInput[ch_cnt];
-    GpioPinDigitalOutput[] pinHXCLK = new GpioPinDigitalOutput[ch_cnt];
-    static HX711[] hx = new HX711[ch_cnt];
+	GpioPinDigitalInput[] pinHXDAT = new GpioPinDigitalInput[2];
+    GpioPinDigitalOutput[] pinHXCLK = new GpioPinDigitalOutput[2];
+    static HX711[] hx = new HX711[2];
 
     //チャート用データーセット
     JFreeChart chart_tention;
@@ -135,7 +133,7 @@ public class MainScreenController {
     long lockedTimer =System.currentTimeMillis();
 	long lockedTimerThresh = 30000;//30秒以上10ｇを越えなければ測定停止
 	//測定計測エラー数
-	static int[] mesureErrCnt = new int[ch_cnt];
+	static int[] mesureErrCnt = new int[2];
 
 	//スレッドオブジェクト
 	ScheduledExecutorService tr = Executors.newSingleThreadScheduledExecutor();
@@ -163,9 +161,9 @@ public class MainScreenController {
 		double[] aveValue= {0,0};
 		double[] aveWeight = {0,0};
 		final int rpeetCnt = 3;//n回平均を取る
-		double[][] tmpValue = new double[ch_cnt][rpeetCnt];
-		double[] maxValue= new double[ch_cnt];
-		double[] minValue= new double[ch_cnt];
+		double[][] tmpValue = new double[2][rpeetCnt];
+		double[] maxValue= new double[2];
+		double[] minValue= new double[2];
 
 	   	//デバッグ用---------------
     	if( debugFlg ) {
@@ -193,10 +191,10 @@ public class MainScreenController {
 
 		maxValue[0] = 0;maxValue[1]=0;
 		minValue[0] = 99999999;minValue[1]=99999999;
-    	int[] enableCnt = new int[ch_cnt];
+    	int[] enableCnt = new int[2];
 		try {
     		for(int j=0;j<rpeetCnt;j++) {
-    			for(int i=0;i<ch_cnt;i++) {
+    			for(int i=0;i<2;i++) {
         			if( hx[i].calibrationWeight > 0 ) {
         				hx[i].read();
 				        int cnt = 0;
@@ -224,7 +222,7 @@ public class MainScreenController {
     		}
     		//測定のレンジがhx[i].resolution * 10倍(10g)を超えていたら結果は-1になる
     		boolean flg=true;
-    		for(int i=0;i<ch_cnt;i++) {
+    		for(int i=0;i<2;i++) {
     			if( hx[i].calibrationWeight > 0 ) {
 	    			if( maxValue[i] - minValue[i] > hx[i].resolution * 10) {
 	    				flg=false;
@@ -239,7 +237,7 @@ public class MainScreenController {
     			}
     		}
     		if( flg ) {
-	    		for(int i=0;i<ch_cnt;i++) {
+	    		for(int i=0;i<2;i++) {
 			        aveValue[i] /= enableCnt[i];
 			        aveWeight[i] /= enableCnt[i];
 	    		}
@@ -324,7 +322,7 @@ public class MainScreenController {
 
         startTime = new Timestamp(System.currentTimeMillis());
 
-        for(int i=0;i<ch_cnt;i++) {
+        for(int i=0;i<2;i++) {
         	mesureErrCnt[i] = 0;
         }
 		//チャート更新
@@ -453,7 +451,7 @@ public class MainScreenController {
 		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
 		    			Platform.runLater(() ->judgmentLB.setText("NG"));
 		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
-		    			
+
 		    			if( !mp_error.isPlaying() ) {
 			    			mp_error.play();
 		    			}
@@ -561,7 +559,7 @@ public class MainScreenController {
 
 		//設定ウィンドウを開く
 		stage.showAndWait();
-		
+
 		debugFlg = settingMenu.demoMode;
 
 		tr = Executors.newSingleThreadScheduledExecutor();
@@ -587,7 +585,7 @@ public class MainScreenController {
 
         GpioController gpio = GpioFactory.getInstance();
 
-        for(int i=0;i<ch_cnt;i++) {
+        for(int i=0;i<2;i++) {
 	        pinHXDAT[i] = gpio.provisionDigitalInputPin(pinNoDAT[i],
 	        		"HX_DAT"+String.valueOf(i), PinPullResistance.OFF);
 	        pinHXCLK[i] = gpio.provisionDigitalOutputPin(pinNoCLK[i],
@@ -606,7 +604,7 @@ public class MainScreenController {
         //測定データリセット実行
         onResetBT(null);
 
-        for(int i=0;i<ch_cnt;i++) {
+        for(int i=0;i<2;i++) {
 	    	hx[i].emptyValue =  CaliblationController.emptyValue[i];
 	    	hx[i].calibrationValue = CaliblationController.calibValue[i];
 	    	hx[i].calibrationWeight =CaliblationController.calibWeight[i];

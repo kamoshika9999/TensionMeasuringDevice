@@ -164,8 +164,8 @@ public class settingMenu {
   					result = MainScreenController.getLoadCellValue();
   					//デバッグコード------------------------------------------
   					if(MainScreenController.debugFlg) {
-  						result[0][2] = 98.000;
-  						result[1][2] = 120.000;
+  						result[0][2] = 0.000;
+  						result[1][2] = 0.000;
   					}
   					//--------------------------------------------------------
   					Platform.runLater(() ->ch1RawValueLB.setText(String.format("%.1f", result[0][2])));

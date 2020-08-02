@@ -5,124 +5,157 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.shape.Line?>
+<?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
 <AnchorPane maxHeight="480.0" maxWidth="640.0" minHeight="480.0" minWidth="640.0" prefHeight="480.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.settingMenu">
    <children>
+      <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="48.0" layoutX="359.0" layoutY="354.0" stroke="BLACK" strokeType="INSIDE" width="280.0" />
       <Button fx:id="settingSaveBT" layoutX="37.0" layoutY="437.0" mnemonicParsing="false" onAction="#onCalibSaveBT" prefHeight="39.0" prefWidth="138.0" text="SAVE">
          <font>
-            <Font size="18.0" />
+            <Font name="Arial" size="18.0" />
          </font>
       </Button>
       <Button fx:id="settingCancelBT" layoutX="193.0" layoutY="437.0" mnemonicParsing="false" onAction="#onCalibCancelBT" prefHeight="39.0" prefWidth="138.0" text="CANCEL">
          <font>
-            <Font size="18.0" />
+            <Font name="Arial" size="18.0" />
          </font>
       </Button>
       <TextField fx:id="ch1Ratio" layoutX="175.0" layoutY="172.0" prefHeight="39.0" prefWidth="174.0" promptText="9.00" text="10.0">
          <font>
-            <Font size="18.0" />
+            <Font name="Arial" size="18.0" />
          </font>
       </TextField>
       <TextField fx:id="ch1MaxError" layoutX="175.0" layoutY="86.0" prefHeight="39.0" prefWidth="174.0" promptText="9.00" text="180">
          <font>
-            <Font size="18.0" />
+            <Font name="Arial" size="18.0" />
          </font>
       </TextField>
       <TextField fx:id="ch1MinError" layoutX="175.0" layoutY="128.0" prefHeight="39.0" prefWidth="174.0" promptText="9.00" text="50">
          <font>
-            <Font size="18.0" />
+            <Font name="Arial" size="18.0" />
          </font>
       </TextField>
       <Label layoutX="37.0" layoutY="88.0" prefHeight="35.0" prefWidth="117.0" text="MAX Tention">
          <font>
-            <Font size="14.0" />
+            <Font name="Arial" size="14.0" />
          </font>
       </Label>
       <Label layoutX="37.0" layoutY="130.0" prefHeight="35.0" prefWidth="117.0" text="MIN Tention">
          <font>
-            <Font size="14.0" />
+            <Font name="Arial" size="14.0" />
          </font>
       </Label>
       <Label layoutX="37.0" layoutY="174.0" prefHeight="35.0" prefWidth="117.0" text="Ratio">
          <font>
-            <Font size="14.0" />
+            <Font name="Arial" size="14.0" />
          </font>
       </Label>
       <Label layoutX="37.0" layoutY="54.0" prefHeight="31.0" prefWidth="460.0" text="&lt;&lt;&lt;&lt;&lt;&lt;CH 1&gt;&gt;&gt;&gt;&gt;&gt;">
          <font>
-            <Font name="System Bold" size="24.0" />
+            <Font name="Arial Bold" size="24.0" />
          </font>
       </Label>
       <TextField fx:id="ch2Ratio" layoutX="175.0" layoutY="360.0" prefHeight="39.0" prefWidth="174.0" promptText="9.00" text="10.0">
          <font>
-            <Font size="18.0" />
+            <Font name="Arial" size="18.0" />
          </font>
       </TextField>
       <TextField fx:id="ch2MaxError" layoutX="175.0" layoutY="274.0" prefHeight="39.0" prefWidth="174.0" promptText="0" text="180">
          <font>
-            <Font size="18.0" />
+            <Font name="Arial" size="18.0" />
          </font>
       </TextField>
       <TextField fx:id="ch2MinError" layoutX="175.0" layoutY="316.0" prefHeight="39.0" prefWidth="174.0" promptText="9.00" text="50">
          <font>
-            <Font size="18.0" />
+            <Font name="Arial" size="18.0" />
          </font>
       </TextField>
       <Label layoutX="37.0" layoutY="242.0" prefHeight="31.0" prefWidth="460.0" text="&lt;&lt;&lt;&lt;&lt;&lt;CH 2&gt;&gt;&gt;&gt;&gt;&gt;">
          <font>
-            <Font name="System Bold" size="24.0" />
+            <Font name="Arial Bold" size="24.0" />
          </font>
       </Label>
       <Label layoutX="37.0" layoutY="23.0" text="Setting Menu">
          <font>
-            <Font name="System Bold Italic" size="18.0" />
+            <Font name="Arial Bold Italic" size="18.0" />
          </font>
       </Label>
       <Line endX="514.0" layoutX="117.0" layoutY="54.0" startX="-100.0" />
       <Label layoutX="364.0" layoutY="54.0" prefHeight="35.0" prefWidth="117.0" text="Warning">
          <font>
-            <Font name="System Bold" size="14.0" />
+            <Font name="Arial Bold" size="14.0" />
          </font>
       </Label>
       <Label fx:id="ch1MaxWarning" layoutX="364.0" layoutY="88.0" prefHeight="35.0" prefWidth="130.0" text="Max Tention * Ratio">
          <font>
-            <Font size="14.0" />
+            <Font name="Arial" size="14.0" />
          </font>
       </Label>
       <Label fx:id="ch1MinWarning" layoutX="364.0" layoutY="130.0" prefHeight="35.0" prefWidth="130.0" text="Min Tention * Ratio">
          <font>
-            <Font size="14.0" />
+            <Font name="Arial" size="14.0" />
          </font>
       </Label>
       <Label layoutX="364.0" layoutY="243.0" prefHeight="35.0" prefWidth="117.0" text="Warning">
          <font>
-            <Font name="System Bold" size="14.0" />
+            <Font name="Arial Bold" size="14.0" />
          </font>
       </Label>
       <Label fx:id="ch2MaxWarning" layoutX="364.0" layoutY="277.0" prefHeight="35.0" prefWidth="130.0" text="MIax Tention * Ratio">
          <font>
-            <Font size="14.0" />
+            <Font name="Arial" size="14.0" />
          </font>
       </Label>
-      <Label fx:id="ch2MinWarning" layoutX="364.0" layoutY="319.0" prefHeight="35.0" prefWidth="117.0" text="Min Tention * Ratio">
+      <Label fx:id="ch2MinWarning" layoutX="364.0" layoutY="319.0" prefHeight="35.0" prefWidth="130.0" text="Min Tention * Ratio">
          <font>
-            <Font size="14.0" />
+            <Font name="Arial" size="14.0" />
          </font>
       </Label>
       <Label layoutX="37.0" layoutY="278.0" prefHeight="35.0" prefWidth="117.0" text="MAX Tention">
          <font>
-            <Font size="14.0" />
+            <Font name="Arial" size="14.0" />
          </font>
       </Label>
       <Label layoutX="37.0" layoutY="320.0" prefHeight="35.0" prefWidth="117.0" text="MIN Tention">
          <font>
-            <Font size="14.0" />
+            <Font name="Arial" size="14.0" />
          </font>
       </Label>
       <Label layoutX="37.0" layoutY="364.0" prefHeight="35.0" prefWidth="117.0" text="Ratio">
          <font>
-            <Font size="14.0" />
+            <Font name="Arial" size="14.0" />
+         </font>
+      </Label>
+      <Label fx:id="ch2TareLB" layoutX="364.0" layoutY="364.0" prefHeight="27.0" prefWidth="168.0" text="Tare=">
+         <font>
+            <Font name="Arial" size="24.0" />
+         </font>
+      </Label>
+      <Button fx:id="ch2TareBT" layoutX="563.0" layoutY="365.0" mnemonicParsing="false" onAction="#onCh2BT" prefHeight="25.0" prefWidth="72.0" text="ZERO">
+         <font>
+            <Font name="Arial" size="12.0" />
+         </font>
+      </Button>
+      <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="48.0" layoutX="354.0" layoutY="168.0" stroke="BLACK" strokeType="INSIDE" width="280.0" />
+      <Label fx:id="ch1TareLB" layoutX="359.0" layoutY="178.0" prefHeight="27.0" prefWidth="168.0" text="Tare=">
+         <font>
+            <Font name="Arial" size="24.0" />
+         </font>
+      </Label>
+      <Button fx:id="ch1TareBT" layoutX="558.0" layoutY="179.0" mnemonicParsing="false" onAction="#onCh1BT" prefHeight="25.0" prefWidth="72.0" text="ZERO">
+         <font>
+            <Font name="Arial" size="12.0" />
+         </font>
+      </Button>
+      <Label fx:id="ch1RawValueLB" layoutX="354.0" layoutY="216.0" prefHeight="17.0" prefWidth="280.0" text="Label">
+         <font>
+            <Font name="Arial" size="13.0" />
+         </font>
+      </Label>
+      <Label fx:id="ch2RawValueLB" layoutX="359.0" layoutY="402.0" prefHeight="17.0" prefWidth="280.0" text="Label">
+         <font>
+            <Font name="Arial" size="13.0" />
          </font>
       </Label>
    </children>

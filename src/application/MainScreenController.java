@@ -40,12 +40,14 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.media.MediaPlayer;
+import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -88,9 +90,17 @@ public class MainScreenController {
     private Label ch2ErrCntLB;
     @FXML
     private Button shutdownBT;
+    @FXML
+    private Label ch1MaxLB;
+    @FXML
+    private Label ch1MinLB;
+    @FXML
+    private Label ch2MaxLB;
+    @FXML
+    private Label ch2MinLB;
 
     //デバッグフラグ
-    boolean debugFlg = true;
+    public static boolean debugFlg = true;
     //HX711のチャンネル数
 	static final int ch_cnt =2;
     //HX711 接続ピンリスト BCM番号で指定 「gpio readall」 で物理ピンと確認すること
@@ -99,7 +109,7 @@ public class MainScreenController {
 	//HX711 オブジェクト
 	GpioPinDigitalInput[] pinHXDAT = new GpioPinDigitalInput[ch_cnt];
     GpioPinDigitalOutput[] pinHXCLK = new GpioPinDigitalOutput[ch_cnt];
-    HX711[] hx = new HX711[ch_cnt];
+    static HX711[] hx = new HX711[ch_cnt];
 
     //チャート用データーセット
     JFreeChart chart_tention;
@@ -117,14 +127,13 @@ public class MainScreenController {
     long shotCnt = 0;
     Timestamp startTime;
 
-    //計測中フラグ
-    boolean mesureFlg =false;
+    static boolean mesureFlg =false; //計測中フラグ
     boolean mesureTreshFlg =false;//計測結果が絶対値で10g超えている場合True;
     boolean mesureStopFlg = false;//trueで計測停止
     long lockedTimer =System.currentTimeMillis();
-	long lockedTimerThresh = 2000;
+	long lockedTimerThresh = 30000;//30秒以上10ｇを越えなければ測定停止
 	//測定計測エラー数
-	int[] mesureErrCnt = new int[ch_cnt];
+	static int[] mesureErrCnt = new int[ch_cnt];
 
 	//スレッドオブジェクト
 	ScheduledExecutorService tr = Executors.newSingleThreadScheduledExecutor();
@@ -134,21 +143,52 @@ public class MainScreenController {
 	MediaPlayer mp;
 	final String wavFileString = "117.wav";
 
+	//各機能実行中フラグ
+	boolean resetExFlg = false;
+	boolean settingExFlg = false;
+	boolean calibExFlg = false;
+
     /**
      *
      * @return  double[ch][0] hx.value   double[ch][1] hx.weight
      * @throws InterruptedException
      */
-    public double[][] getLoadCellValue(){
+    public static double[][] getLoadCellValue(){
+
     	mesureFlg = true;
 
-    	double[][] result= {{-1,-1},{-1,-1}};
+    	double[][] result= {{-1,-1,-1},{-1,-1,-1}};
 		double[] aveValue= {0,0};
 		double[] aveWeight = {0,0};
 		final int rpeetCnt = 3;//n回平均を取る
 		double[][] tmpValue = new double[ch_cnt][rpeetCnt];
 		double[] maxValue= new double[ch_cnt];
 		double[] minValue= new double[ch_cnt];
+
+	   	//デバッグ用---------------
+    	if( debugFlg ) {
+	        Random rand = new Random();
+	        int num = rand.nextInt(30)-15;
+	    	result[0][1] = 98 + num  - settingMenu.ch1TareValue;
+	    	result[0][2] = 98 + num;
+	    	num = rand.nextInt(30)-15;
+	    	result[1][1] = 120 + num - settingMenu.ch2TareValue;
+	    	result[1][2] = 120 + num;
+	    	double resolution = 3204;
+	    	result[0][0] = result[0][2] * resolution;
+	    	result[1][0] = result[1][2] * resolution;
+
+	    	try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+	    	mesureFlg = false;
+	    	return result;
+    	}
+    	//-------------------------
+
+
 		maxValue[0] = 0;maxValue[1]=0;
 		minValue[0] = 99999999;minValue[1]=99999999;
     	int[] enableCnt = new int[ch_cnt];
@@ -156,11 +196,11 @@ public class MainScreenController {
     		for(int j=0;j<rpeetCnt;j++) {
     			for(int i=0;i<ch_cnt;i++) {
         			if( hx[i].calibrationWeight > 0 ) {
-        				if( !debugFlg ) hx[i].read();
+        				hx[i].read();
 				        int cnt = 0;
-				        
+
 				        while( hx[i].value == -1) {
-				        	if( !debugFlg ) hx[i].read();
+				        	hx[i].read();
 				        	cnt++;
 				        	if( cnt > 10 ) {
 				        		break;
@@ -173,7 +213,6 @@ public class MainScreenController {
 					        aveValue[i] += hx[i].value;
 					        aveWeight[i] += hx[i].weight;
 					        enableCnt[i]++;
-				        	//System.out.println("faileMesureCnt = " + cnt );
 				        }else {
 				        	System.out.println("faileMesureCnt(RpeetOver10) = " + cnt );
 				        }
@@ -202,10 +241,12 @@ public class MainScreenController {
 			        aveValue[i] /= enableCnt[i];
 			        aveWeight[i] /= enableCnt[i];
 	    		}
-	    		for(int i=0;i<ch_cnt;i++) {
-	    			result[i][0] = aveValue[i];
-	    			result[i][1] = aveWeight[i];
-	    		}
+    			result[0][0] = aveValue[0];
+    			result[1][0] = aveValue[1];
+    			result[0][1] = aveWeight[0] - settingMenu.ch1TareValue;
+    			result[1][1] = aveWeight[1] - settingMenu.ch2TareValue;
+    			result[0][2] = aveWeight[0];
+    			result[1][2] = aveWeight[1];
     		}
     	}catch(Exception e) {
     		System.out.println(e);
@@ -213,26 +254,7 @@ public class MainScreenController {
     	}
     	mesureFlg = false;
 
-    	//デバッグ用---------------
-    	if( debugFlg ) {
-	        Random rand = new Random();
-	        int num = rand.nextInt(30)-15;
-	    	result[0][1] = 98 + num;
-	    	num = rand.nextInt(30)-15;
-	    	result[1][1] = 120 + num;
-	    	double resolution = 3204;
-	    	result[0][0] = result[0][1] * resolution;
-	    	result[1][0] = result[1][1] * resolution;
-
-	    	try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-    	}
-    	//-------------------------
-
-    	return result;
+     	return result;
     }
 
     @FXML
@@ -242,7 +264,9 @@ public class MainScreenController {
 
     @FXML
     void onCaliblationController(ActionEvent event) {
-		try {
+    	if( calibExFlg ) return;
+    	calibExFlg = true;
+    	try {
 			tr.shutdown();
 			tr.awaitTermination(33, TimeUnit.MICROSECONDS);
 		} catch(Exception e) {
@@ -262,12 +286,12 @@ public class MainScreenController {
 		stage.setScene(scene);
 		stage.setResizable(false);
 
-		CaliblationController.hx = this.hx;//参照を渡す
 		//設定ウィンドウを開く
 		stage.showAndWait();
 
 		tr = Executors.newSingleThreadScheduledExecutor();
 		tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
+    	calibExFlg = false;
     }
 
     /**
@@ -276,7 +300,17 @@ public class MainScreenController {
      */
     @FXML
     void onResetBT(ActionEvent event) {
-        ch1_tention.clear();
+    	if( resetExFlg ) return;
+    	resetExFlg = true;
+
+    	if( shotCnt > 1) {
+			if( !csvSaveLoad.saveDataSet(tention_dataset, startTime) ) {
+				System.out.println("データーセット保存異常");
+				Platform.runLater( () ->this.infoLB.setText("データーセット保存異常"));
+			}
+		}
+
+    	ch1_tention.clear();
         ch2_tention.clear();
         ch1_max = 0;
         ch2_max = 0;
@@ -304,11 +338,39 @@ public class MainScreenController {
 				(int)Math.floor( ((double)0/1000.0/60.0) % 60),
 				(int)(0/1000) % 60
 				)));
+		
+    	resetExFlg = false;
+    }
+
+    /**
+     * ボタンの表示、非表示の切り替え
+     * @param visibleFlg true:表示 false:非表示
+     */
+    private void visibleBT(boolean visibleFlg) {
+    	if( !visibleFlg ) {
+			Platform.runLater( () -> this.calibrationMenuBT.setVisible(false));
+			Platform.runLater( () -> this.settingMenuBT.setVisible(false));
+			Platform.runLater( () -> this.resetBT.setVisible(false));
+			Platform.runLater( () -> this.shutdownBT.setVisible(false));
+    	}else {
+			Platform.runLater( () -> this.calibrationMenuBT.setVisible(true));
+			Platform.runLater( () -> this.settingMenuBT.setVisible(true));
+			Platform.runLater( () -> this.resetBT.setVisible(true));
+			Platform.runLater( () -> this.shutdownBT.setVisible(true));
+    	}
     }
 
     private void mesure() {
     		if(mesureFlg) return;
-
+    		//デバッグコード--------------------
+    		if( debugFlg ) {
+		    	try {
+					Thread.sleep(300);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+    		}
+    		//-----------------------------------
 	    	double[][] result = getLoadCellValue();
 	    	if( result[0][0] != -1 ) {
 		    	Platform.runLater(() ->hxvalueLB1.setText(String.format("%.0f",result[0][0])));
@@ -334,9 +396,63 @@ public class MainScreenController {
 
 	    	if( !mesureStopFlg ) {
 	    		shotCnt++;
+    			//Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("0xffffffff")));
 
 		    	if( result[0][0] != -1 ) {
-		    		Platform.runLater(() ->infoLB.setText("Measuring"));
+		    		int judgmentFlg = 0;//0:合格 1～2:警告 3～:規格外
+		    		//規格判定
+		    		if( result[0][1] >
+		    			settingMenu.ch1MaxErrorValue - (settingMenu.ch1MaxErrorValue*settingMenu.ch1RatioValue) ) {
+		    			Platform.runLater(() ->infoLB.setText("CH1 MaxWarning"));
+		    			judgmentFlg += 1;
+		    		}
+		    		if( result[0][1] > settingMenu.ch1MaxErrorValue) {
+		    			Platform.runLater(() ->infoLB.setText("CH1 MaxOver!!"));
+		    			judgmentFlg += 3;
+		    		}
+		    		if( result[0][1] <
+	    			settingMenu.ch1MinErrorValue + (settingMenu.ch1MinErrorValue*settingMenu.ch1RatioValue) ) {
+		    			Platform.runLater(() ->infoLB.setText("CH1 MinWarning"));
+		    			judgmentFlg += 1;
+		    		}
+		    		if( result[0][1] < settingMenu.ch1MinErrorValue) {
+		    			Platform.runLater(() ->infoLB.setText("CH1 MinLower!!"));
+		    			judgmentFlg += 3;
+		    		}
+		    		if( result[1][1] >
+	    			settingMenu.ch2MaxErrorValue - (settingMenu.ch2MaxErrorValue*settingMenu.ch2RatioValue) ) {
+		    			Platform.runLater(() ->infoLB.setText("CH2 MaxWarning"));
+		    			judgmentFlg += 1;
+		    		}
+		    		if( result[1][1] > settingMenu.ch2MaxErrorValue) {
+		    			Platform.runLater(() ->infoLB.setText("CH2 MaxOver!!"));
+		    			judgmentFlg += 3;
+		    		}
+		    		if( result[1][1] <
+	    			settingMenu.ch2MinErrorValue + (settingMenu.ch2MinErrorValue*settingMenu.ch2RatioValue) ) {
+		    			Platform.runLater(() ->infoLB.setText("CH2 MinWarning"));
+		    			judgmentFlg += 1;
+		    		}
+		    		if( result[1][1] < settingMenu.ch2MinErrorValue) {
+		    			Platform.runLater(() ->infoLB.setText("CH2 MinLower!!"));
+		    			judgmentFlg += 3;
+		    		}
+		    		//判定表示
+		    		if( judgmentFlg == 0 ) {
+			    		Platform.runLater(() ->infoLB.setText("Measuring"));
+		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#5eff00ff")));
+		    			Platform.runLater(() ->judgmentLB.setText("OK"));
+		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
+		    		}else if( judgmentFlg ==1 || judgmentFlg ==2) {
+		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ffff00ff")));
+		    			Platform.runLater(() ->judgmentLB.setText("!!!"));
+		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
+		    		}else {
+		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
+		    			Platform.runLater(() ->judgmentLB.setText("NG"));
+		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
+		    		}
+
 
 		    		//チャート更新
 		    		long chartTime = System.currentTimeMillis() - startTime.getTime();//経過時間(mSec単位)
@@ -345,8 +461,7 @@ public class MainScreenController {
 		    		Platform.runLater( () ->tention_dataset.getSeries(1).add((double)chartTime/1000.0,result[1][1]));
 		    		//デバッグ用-------------------------------------------------------------------------------------
 		    		if( debugFlg ) {
-		    	        System.out.println("Object type: " + tention_dataset.getClass() +
-		    	          ", size: " + InstrumentationAgent.getObjectSize(tention_dataset) + " bytes");
+		    	        System.out.println("[ShotCnt]="+shotCnt+" [dataSetSize]=" + ( (8+8)*2*shotCnt/1024) + "Kbyte");
 		    		}
 		    		//-----------------------------------------------------------------------------------------------
 		    		//経過時間表示
@@ -358,7 +473,7 @@ public class MainScreenController {
 
 		    		//データーセットはdouble値 チャート表示は整数とする為、変換表示させる
 		    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getDomainAxis()).
-							setRange( (chartTime/1000)<=600 ? 0 : (chartTime/1000)-600,(chartTime/1000)<1?1:(chartTime/1000) ));
+							setRange( (chartTime/1000)<=60 ? 0 : (chartTime/1000)-60,(chartTime/1000)<1?1:(chartTime/1000) ));
 
 		    		//データー追加
 		    		ch1_tention.add(result[0][1]);
@@ -371,6 +486,11 @@ public class MainScreenController {
 		    		ch2_ave +=  result[1][1];
 		    		Platform.runLater(() ->ch1AveLB.setText(String.format("%.0f",ch1_ave/shotCnt)));
 		    		Platform.runLater(() ->ch2AveLB.setText(String.format("%.0f",ch2_ave/shotCnt)));
+		    		Platform.runLater(() ->ch1MaxLB.setText(String.format("%.0f",ch1_max)));
+		    		Platform.runLater(() ->ch1MinLB.setText(String.format("%.0f",ch1_min)));
+		    		Platform.runLater(() ->ch2MaxLB.setText(String.format("%.0f",ch2_max)));
+		    		Platform.runLater(() ->ch2MinLB.setText(String.format("%.0f",ch2_min)));
+
 
 		    		final double rangeRatio = 0.4;
 		    		double minRange = ch1_min<ch2_min?ch1_min-Math.abs(ch1_min*rangeRatio):ch2_min-Math.abs(ch2_min*rangeRatio);
@@ -383,8 +503,6 @@ public class MainScreenController {
 		    		final double minRange_ = minRange;
 		    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getRangeAxis()).
 							setRange(minRange_,maxRange_));
-
-		    		//System.out.println("ChartRangeMax="+(ch1_max>ch2_max?ch1_max+Math.abs(ch1_max*rangeRatio):ch2_max+Math.abs(ch2_max*rangeRatio)));
 		    	}else {
 			    	Platform.runLater(() ->hxvalueLB1.setText(String.format("%.0f",0.0)));
 			    	Platform.runLater(() ->hxvalueLB2.setText(String.format("%.0f",0.0)));
@@ -411,7 +529,18 @@ public class MainScreenController {
      */
     @FXML
     void onSettingMenuBT(ActionEvent event) {
-		FXMLLoader loader = new FXMLLoader(getClass().getResource("settingMenu.fxml"));
+    	if( settingExFlg ) return;
+
+    	settingExFlg = true;
+
+    	try {
+			tr.shutdown();
+			tr.awaitTermination(33, TimeUnit.MICROSECONDS);
+		} catch(Exception e) {
+			System.out.println(e);
+		}
+
+    	FXMLLoader loader = new FXMLLoader(getClass().getResource("settingMenu.fxml"));
 		AnchorPane root = null;
 		try {
 			root = (AnchorPane) loader.load();
@@ -426,6 +555,10 @@ public class MainScreenController {
 
 		//設定ウィンドウを開く
 		stage.showAndWait();
+
+		tr = Executors.newSingleThreadScheduledExecutor();
+		tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
+		settingExFlg = false;
     }
 
     /**
@@ -478,9 +611,7 @@ public class MainScreenController {
         chart_tention = chartFact();
 
         //自動計測開始
-
  	   tentionMesure = new Runnable() {
-
 		@Override
  		   public void run() {
 			  mesure();
@@ -503,9 +634,9 @@ public class MainScreenController {
 
     }
     private JFreeChart chartFact() {
-    	XYSeriesCollection ch1_tention;
-		ch1_tention = getChartData();
-		JFreeChart chart = createInitChart("Tention","(g)","ElapsedTime(sec)",ch1_tention ,0.0,300);
+    	XYSeriesCollection tentionDataSet;
+		tentionDataSet = getChartData();
+		JFreeChart chart = createInitChart("TentionRealTimeMonitor","(g)","ElapsedTime(sec)",tentionDataSet ,0.0,300);
 		ChartViewer chV = new ChartViewer(chart);
         chV.addChartMouseListener( new ChartMouseListenerFX() {
 				@Override

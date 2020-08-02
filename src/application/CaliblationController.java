@@ -63,7 +63,6 @@ public class CaliblationController {
     static long[] calibValue = new long[2];
     static double[] calibWeight = new double[2];
     static double[] resolution = new double[2];
-    static HX711[] hx;//MainScreenControllerで作成されたオブジェクトの参照
     private String infoText ="";
     private long aveValue= 0;
 	private boolean trFlg = false;
@@ -96,10 +95,10 @@ public class CaliblationController {
 
     	//ロードセルオブジェクトのパラメータを更新
     	for(int i=0;i<MainScreenController.ch_cnt;i++) {
-	    	hx[i].emptyValue =  CaliblationController.emptyValue[i];
-	    	hx[i].calibrationValue = CaliblationController.calibValue[i];
-	    	hx[i].calibrationWeight =CaliblationController.calibWeight[i];
-	    	hx[i].resolution = CaliblationController.resolution[i];
+	    	MainScreenController.hx[i].emptyValue =  CaliblationController.emptyValue[i];
+	    	MainScreenController.hx[i].calibrationValue = CaliblationController.calibValue[i];
+	    	MainScreenController.hx[i].calibrationWeight =CaliblationController.calibWeight[i];
+	    	MainScreenController.hx[i].resolution = CaliblationController.resolution[i];
     	}
 
 		Scene scene = ((Node) event.getSource()).getScene();
@@ -168,16 +167,16 @@ public class CaliblationController {
 	   			   tmpAve = 0;
 		   		   for(int i=0;i<tryCnt;i++) {
 		   			   System.out.print(".");
-					   if( !hx[chNo].read() ) {
+					   if( !MainScreenController.hx[chNo].read() ) {
 						   System.out.println("fail 1st=" + i);
-						   if( !hx[chNo].read() ) {
+						   if( !MainScreenController.hx[chNo].read() ) {
 							   infoText ="Failed";
 							   trFlg=false;
 							   System.out.println("最初の20回測定内でFailed発生");
 							   return;
 						   }
 					   }
-					   tmpValue[i] = hx[chNo].value;
+					   tmpValue[i] = MainScreenController.hx[chNo].value;
 					   tmpAve += tmpValue[i];
 		   		   }
 		   		   tmpAve /= tryCnt;
@@ -214,22 +213,22 @@ public class CaliblationController {
 	   		   int overCnt = 0;
 	   			for(int i=0;i<rpeetCnt;i++) {
 		   			   System.out.print(".");
-				   if( !hx[chNo].read() ) {
-					   if( !hx[chNo].read() ) {
+				   if( !MainScreenController.hx[chNo].read() ) {
+					   if( !MainScreenController.hx[chNo].read() ) {
 						   infoText ="Failed";
 						   trFlg=false;
 						   return;
 					   }
 				   }
 				   //得た値が最初の20回の平均との偏差が換算値で5gを超えている場合(異常値の破棄)
-				   if( Math.abs( tmpAve - hx[chNo].value) > hx[chNo].resolution*5) {
-					  System.out.println( "tmpAve="+tmpAve + "差" + (tmpAve - hx[chNo].value) );
-					  System.out.println( "|tmpAve - hx[chNo].value| = " + Math.abs( tmpAve- hx[chNo].value));
+				   if( Math.abs( tmpAve - MainScreenController.hx[chNo].value) > MainScreenController.hx[chNo].resolution*5) {
+					  System.out.println( "tmpAve="+tmpAve + "差" + (tmpAve - MainScreenController.hx[chNo].value) );
+					  System.out.println( "|tmpAve - hx[chNo].value| = " + Math.abs( tmpAve- MainScreenController.hx[chNo].value));
 					  overCnt++;
 					  System.out.println("overCnt=" + overCnt);
 				   }else {
-						infoText = String.format("%d",hx[chNo].value);
-				        aveValue += hx[chNo].value;
+						infoText = String.format("%d",MainScreenController.hx[chNo].value);
+				        aveValue += MainScreenController.hx[chNo].value;
 				   }
 	   			}
 	   			aveValue /= rpeetCnt-overCnt;

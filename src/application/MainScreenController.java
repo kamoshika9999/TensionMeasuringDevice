@@ -131,12 +131,13 @@ public class MainScreenController {
     boolean mesureTreshFlg =false;//計測結果が絶対値で10g超えている場合True;
     boolean mesureStopFlg = false;//trueで計測停止
     long lockedTimer =System.currentTimeMillis();
-	long lockedTimerThresh = 30000;//30秒以上10ｇを越えなければ測定停止
-	//測定計測エラー数
+	long lockedTimerThresh = 3000;//3秒以上10ｇを越えなければ測定停止
+	//機器計測エラー数
 	public static int[] mesureErrCnt = new int[2];
-	final int mesureErrCntTreth = 1000;
+	final int mesureErrCntTreth = 2000;
 	boolean mesureErrFlg = false;
-
+	//テンションエラーフラグ
+	boolean tentionErrFlg = false;
 	//スレッドオブジェクト
 	ScheduledExecutorService tr = Executors.newSingleThreadScheduledExecutor();
 	Runnable tentionMesure;
@@ -144,6 +145,11 @@ public class MainScreenController {
 	//メディアプレイヤー
 	AudioClip mp_error;
 	final String wavFileString = "117.wav";
+	AudioClip mp_error2;
+	final String wav2FileString = "error.wav";
+	AudioClip mp_error3;
+	final String wav3FileString = "warning.wav";
+
 
 	//各機能実行中フラグ
 	boolean resetExFlg = false;
@@ -216,7 +222,7 @@ public class MainScreenController {
 					        aveWeight[i] += hx[i].weight;
 					        enableCnt[i]++;
 				        }else {
-				        	System.out.println("faileMesureCnt(RpeetOver10) = " + cnt );
+				        	//System.out.println("faileMesureCnt(RpeetOver10) = " + cnt );
 				        	mesureErrCnt[i]++;
 				        }
         			}
@@ -306,12 +312,15 @@ public class MainScreenController {
     	if( resetExFlg ) return;
     	resetExFlg = true;
 
-    	if( shotCnt > 1) {
-			if( !csvSaveLoad.saveDataSet(tention_dataset, startTime,ch1_max,ch1_min,ch1_ave,ch2_max,ch2_min,ch2_ave,shotCnt) ) {
-				System.out.println("データーセット保存異常");
-				Platform.runLater( () ->this.infoLB.setText("データーセット保存異常"));
+    	//約60秒未満は保存しない
+    	if(shotCnt > 1) {//startTimeオブジェクトがnullの時は実行しない
+	    	if( System.currentTimeMillis() - startTime.getTime() > 60*1000 ) {
+				if( !csvSaveLoad.saveDataSet(tention_dataset, startTime,ch1_max,ch1_min,ch1_ave,ch2_max,ch2_min,ch2_ave,shotCnt) ) {
+					System.out.println("データーセット保存異常");
+					Platform.runLater( () ->this.infoLB.setText("データーセット保存異常"));
+				}
 			}
-		}
+    	}
 
     	ch1_tention.clear();
         ch2_tention.clear();
@@ -325,24 +334,33 @@ public class MainScreenController {
 
         startTime = new Timestamp(System.currentTimeMillis());
 
-        for(int i=0;i<2;i++) {
-        	mesureErrCnt[i] = 0;
-        }
 		//チャート更新
 		Platform.runLater( () ->tention_dataset.getSeries(0).clear());
 		Platform.runLater( () ->tention_dataset.getSeries(1).clear());
-		Platform.runLater( () ->mesureCntLB.setText(String.valueOf(shotCnt)));
+		/*
 		Platform.runLater(() ->this.ch1ErrCntLB.setText(String.valueOf( mesureErrCnt[0] )));
 		Platform.runLater(() ->this.ch2ErrCntLB.setText(String.valueOf( mesureErrCnt[1] )));
-
 		//経過時間表示
 		Platform.runLater( () ->mesureCntLB.setText( String.format("%d H %d M %d S",
 				(int)Math.floor( (double)0/1000.0/3600.0 ),
 				(int)Math.floor( ((double)0/1000.0/60.0) % 60),
 				(int)(0/1000) % 60
 				)));
-		//機器異常リセット
-		mesureErrFlg = false;
+		*/
+		//機器異常リセット ※eventがnullの時は自動停止時に呼び出されたと判断しリセットしない
+		if( event != null ) {
+			mesureErrFlg = false;
+	        for(int i=0;i<2;i++) {
+	        	mesureErrCnt[i] = 0;
+	        }
+
+	        tentionErrFlg = false;
+
+	        //メディアプレイヤー再生強制停止
+			if( mp_error != null ) mp_error.stop();
+			if( mp_error2 != null ) mp_error2.stop();
+		}
+
 
     	resetExFlg = false;
     }
@@ -406,9 +424,6 @@ public class MainScreenController {
 		    	if( result[0][0] != -1 ) {
 		    		int judgmentFlg = 0;//0:合格 1～2:警告 3～:規格外
 		    		//規格判定
-		    		if( mesureErrCnt[0] > mesureErrCntTreth || mesureErrCnt[1] > mesureErrCntTreth) {
-		    			mesureErrFlg = true;
-		    		}
 		    		if( result[0][1] >
 		    			settingMenu.ch1MaxErrorValue - (settingMenu.ch1MaxErrorValue*settingMenu.ch1RatioValue) ) {
 		    			Platform.runLater(() ->infoLB.setText("CH1 MaxWarning"));
@@ -455,23 +470,17 @@ public class MainScreenController {
 		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ffff00ff")));
 		    			Platform.runLater(() ->judgmentLB.setText("!!!"));
 		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
+
+		    			if( !mp_error3.isPlaying() && !mesureErrFlg) {
+			    			mp_error3.play();
+		    			}
+
 		    		}else if( judgmentFlg > 2){
 		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
 		    			Platform.runLater(() ->judgmentLB.setText("NG"));
 		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
 
-		    			if( !mp_error.isPlaying() ) {
-			    			mp_error.play();
-		    			}
-		    		}
-		    		if( mesureErrFlg ) {
-		    			if( !mp_error.isPlaying() ) {
-			    			mp_error.play();
-		    			}
-		    			Platform.runLater(() ->infoLB.setText("Equipment abnormality"));
-		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
-		    			Platform.runLater(() ->judgmentLB.setText("×"));
-		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
+		    			tentionErrFlg = true;
 		    		}
 
 		    		//チャート更新
@@ -481,7 +490,7 @@ public class MainScreenController {
 		    		Platform.runLater( () ->tention_dataset.getSeries(1).add((double)chartTime/1000.0,result[1][1]));
 		    		//デバッグ用-------------------------------------------------------------------------------------
 		    		if( debugFlg ) {
-		    	        System.out.println("[ShotCnt]="+shotCnt+" [dataSetSize]=" + ( (8+8)*2*shotCnt/1024) + "Kbyte");
+		    	        //System.out.println("[ShotCnt]="+shotCnt+" [dataSetSize]=" + ( (8+8)*2*shotCnt/1024) + "Kbyte");
 		    		}
 		    		//-----------------------------------------------------------------------------------------------
 		    		//経過時間表示
@@ -530,8 +539,6 @@ public class MainScreenController {
 			    	Platform.runLater(() ->hxvalueLB4.setText(String.format("%.0f",0.0)));
 			    	Platform.runLater(() ->hxvalueLB5.setText(String.format("%.0f",0.0)));
 		    		Platform.runLater(() ->infoLB.setText("Mesure Error"));
-		    		Platform.runLater(() ->this.ch1ErrCntLB.setText(String.valueOf( mesureErrCnt[0] )));
-		    		Platform.runLater(() ->this.ch2ErrCntLB.setText(String.valueOf( mesureErrCnt[1] )));
 		    	}
 	    	}else{
 		    	Platform.runLater(() ->hxvalueLB1.setText(String.format("%.0f",0.0)));
@@ -541,6 +548,28 @@ public class MainScreenController {
 		    	Platform.runLater(() ->hxvalueLB5.setText(String.format("%.0f",0.0)));
 		    	Platform.runLater(() ->infoLB.setText("Mesure Stop"));
 	    	}
+	    	//テンション異常
+	    	if( tentionErrFlg ) {
+    			if( !mp_error.isPlaying() && !mesureErrFlg) {
+	    			mp_error.play();
+    			}
+	    	}
+	    	//機器異常判定
+	    	if( mesureErrCnt[0] > mesureErrCntTreth || mesureErrCnt[1] > mesureErrCntTreth) {
+    			mesureErrFlg = true;
+    		}
+    		if( mesureErrFlg ) {
+    			if( !mp_error2.isPlaying() ) {
+	    			mp_error2.play();
+    			}
+    			Platform.runLater(() ->infoLB.setText("Equipment abnormality"));
+    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
+    			Platform.runLater(() ->judgmentLB.setText("×"));
+    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
+    		}
+    		Platform.runLater(() ->this.ch1ErrCntLB.setText(String.valueOf( mesureErrCnt[0] )));
+    		Platform.runLater(() ->this.ch2ErrCntLB.setText(String.valueOf( mesureErrCnt[1] )));
+
     }
 
     /**
@@ -635,7 +664,12 @@ public class MainScreenController {
 			e.printStackTrace();
 		}
 		String filePath = jarFile.getParent() + File.separator + wavFileString;
-		mp_error = new AudioClip(new File(filePath).toURI().toString());
+		mp_error = new AudioClip(new File(filePath).toURI().toString());//テンション規格外
+		filePath = jarFile.getParent() + File.separator + wav2FileString;
+		mp_error2 = new AudioClip(new File(filePath).toURI().toString());//機器以上
+		filePath = jarFile.getParent() + File.separator + wav3FileString;
+		mp_error3 = new AudioClip(new File(filePath).toURI().toString());//機器以上
+
 
 
         //チャートオブジェクト作成
@@ -648,13 +682,12 @@ public class MainScreenController {
 			  mesure();
  			  if( mesureTreshFlg ) {
  				  lockedTimer = System.currentTimeMillis();
- 				  if(mesureStopFlg) {
- 					  onResetBT(null);
- 				  }
-
- 			  }
+  			  }
  			  if( System.currentTimeMillis() - lockedTimer > lockedTimerThresh) {
- 				  mesureStopFlg  = true;
+ 				  if( !mesureStopFlg) {
+	 				  mesureStopFlg  = true;
+	 				  onResetBT(null);
+ 				  }
  			  }else {
  				 mesureStopFlg  = false;
  			  }

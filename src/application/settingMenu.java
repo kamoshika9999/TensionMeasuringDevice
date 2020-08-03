@@ -61,6 +61,11 @@ public class settingMenu {
     private Label ch2RawValueLB;
     @FXML
     private CheckBox demoChk;
+    @FXML
+    private CheckBox CH1SignInversion;
+    @FXML
+    private CheckBox CH2SignInversion;
+
     //クラス変数
     double tmpTareValueCh1,tmpTareValueCh2;
 
@@ -79,6 +84,9 @@ public class settingMenu {
     public static double ch1TareValue;
     public static double ch2TareValue;
     public static boolean demoMode = false;
+    public static boolean CH1SignInversionFlg;
+    public static boolean CH2SignInversionFlg;
+
 
     /**
      * 風袋リセット CH1
@@ -128,6 +136,8 @@ public class settingMenu {
     	ch2MinErrorValue = Long.valueOf( this.ch2MinError.getText());
     	ch1TareValue = tmpTareValueCh1;
     	ch2TareValue = tmpTareValueCh2;
+    	CH1SignInversionFlg = CH1SignInversion.isSelected();
+    	CH2SignInversionFlg = CH2SignInversion.isSelected();
 
     	if( !csvSaveLoad.settingValueSave() ) {
     		System.out.println("settingSaveError");
@@ -138,7 +148,7 @@ public class settingMenu {
     	}else {
     		demoMode = false;
     	}
-    		
+
 
 		Scene scene = ((Node) event.getSource()).getScene();
 		Window window = scene.getWindow();
@@ -156,6 +166,8 @@ public class settingMenu {
     	Platform.runLater(() ->ch2MaxError.setText( String.valueOf(ch2MaxErrorValue)));
     	Platform.runLater(() ->ch2MinError.setText( String.valueOf(ch2MinErrorValue)));
     	Platform.runLater(() ->ch2Ratio.setText( String.valueOf(ch2RatioValue)));
+    	Platform.runLater(() ->CH1SignInversion.setSelected(CH1SignInversionFlg));
+    	Platform.runLater(() ->CH2SignInversion.setSelected(CH2SignInversionFlg));
 
     	tentionMesure = new Runnable() {
 			@Override
@@ -168,11 +180,11 @@ public class settingMenu {
   						result[1][2] = 0.000;
   					}
   					//--------------------------------------------------------
-  					Platform.runLater(() ->ch1RawValueLB.setText(String.format("%.1f", result[0][2])));
-  					Platform.runLater(() ->ch2RawValueLB.setText(String.format("%.1f", result[1][2])));
+  					Platform.runLater(() ->ch1RawValueLB.setText(String.format("%.3f", result[0][2])));
+  					Platform.runLater(() ->ch2RawValueLB.setText(String.format("%.3f", result[1][2])));
 
-  					Platform.runLater(() ->ch1TareLB.setText(String.format("Tare=%.1f", result[0][2]-tmpTareValueCh1)));
-  					Platform.runLater(() ->ch2TareLB.setText(String.format("Tare=%.1f", result[1][2]-tmpTareValueCh2)));
+  					Platform.runLater(() ->ch1TareLB.setText(String.format("Tare=%.3f", result[0][2]-tmpTareValueCh1)));
+  					Platform.runLater(() ->ch2TareLB.setText(String.format("Tare=%.3f", result[1][2]-tmpTareValueCh2)));
   				  }
 			}
   	 	   };

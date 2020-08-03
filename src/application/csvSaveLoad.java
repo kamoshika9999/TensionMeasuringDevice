@@ -81,10 +81,6 @@ public class csvSaveLoad {
 			String[] subStr = reader.readNext();//キャリブレーションデータ読み込み
 			reader.close();
 
-			for(int i=0;i<2;i++) {
-				System.out.println(headStr.length + " " + headStr[i]);
-				System.out.println(subStr.length + " " + subStr[i]);
-			}
 
 			for(int i=0;i<2;i++) {
 				CaliblationController.emptyValue[i] = Long.valueOf(subStr[i*4+0]);
@@ -119,9 +115,12 @@ public class csvSaveLoad {
 	    public static double ch2RatioValue;
 	    public static long ch2MaxErrorValue;
 	    public static long ch2MinErrorValue;
+        public static boolean CH1SignInversionFlg;
+    	public static boolean CH2SignInversionFlg;
+
 	    */
 
-		String[] headStr = new String[8];
+		String[] headStr = new String[10];
 		headStr[0]="ch1RatioValue";
 		headStr[1]="ch1MaxErrorValue";
 		headStr[2]="ch1MinErrorValue";
@@ -130,13 +129,15 @@ public class csvSaveLoad {
 		headStr[5]="ch2MinErrorValue";
 		headStr[6]="ch1TareValue";
 		headStr[7]="ch2TareValue";
+		headStr[8]="CH1SignInversionFlg";
+		headStr[9]="CH2SignInversionFlg";
 
 		CSVWriter writer;
 		try {
 			writer = new CSVWriter(new FileWriter(folderPath+"init2.csv"));
 	        writer.writeNext(headStr);  //ヘッダー書き込み
 
-	        String[] subStr = new String[8];
+	        String[] subStr = new String[10];
 
 	        subStr[0] = String.valueOf( settingMenu.ch1RatioValue );
 	        subStr[1] = String.valueOf( settingMenu.ch1MaxErrorValue );
@@ -146,6 +147,8 @@ public class csvSaveLoad {
 	        subStr[5] = String.valueOf( settingMenu.ch2MinErrorValue );
 	        subStr[6] = String.valueOf( settingMenu.ch1TareValue );
 	        subStr[7] = String.valueOf( settingMenu.ch2TareValue );
+	        subStr[8] = String.valueOf( settingMenu.CH1SignInversionFlg );
+	        subStr[9] = String.valueOf( settingMenu.CH2SignInversionFlg );
 
         	writer.writeNext(subStr);
 	        writer.close();
@@ -176,6 +179,8 @@ public class csvSaveLoad {
 	    public static long ch2MinErrorValue;
 	    public static double ch1TareValue;
 	    public static double ch2TareValue;
+        public static boolean CH1SignInversionFlg;
+    	public static boolean CH2SignInversionFlg;
 	    */
 		try {
 			FileReader fr = new FileReader(folderPath+"init2.csv");
@@ -193,6 +198,9 @@ public class csvSaveLoad {
 			settingMenu.ch2MinErrorValue = Long.valueOf(subStr[5]);
 			settingMenu.ch1TareValue = Double.valueOf(subStr[6]);
 			settingMenu.ch2TareValue = Double.valueOf(subStr[7]);
+			settingMenu.CH1SignInversionFlg = subStr[8]=="false"?false:true;
+			settingMenu.CH2SignInversionFlg = subStr[9]=="false"?false:true;
+
 
 		} catch (Exception e) {
 			e.printStackTrace();

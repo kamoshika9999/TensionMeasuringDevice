@@ -164,5 +164,15 @@
             <Font name="Arial" size="13.0" />
          </font>
       </CheckBox>
+      <CheckBox fx:id="CH1SignInversion" layoutX="505.0" layoutY="97.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="138.0" text="Sign inversion">
+         <font>
+            <Font name="Arial" size="13.0" />
+         </font>
+      </CheckBox>
+      <CheckBox fx:id="CH2SignInversion" layoutX="505.0" layoutY="287.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="138.0" text="Sign inversion">
+         <font>
+            <Font name="Arial" size="13.0" />
+         </font>
+      </CheckBox>
    </children>
 </AnchorPane>

@@ -177,10 +177,10 @@ public class MainScreenController {
     	if( debugFlg ) {
 	        Random rand = new Random();
 	        int num = rand.nextInt(30)-15;
-	    	result[0][1] = 98 + num  - settingMenu.ch1TareValue;
+	    	result[0][1] = (98 + num  - settingMenu.ch1TareValue)* (settingMenu.CH1SignInversionFlg?-1:1);
 	    	result[0][2] = 98 + num;
 	    	num = rand.nextInt(30)-15;
-	    	result[1][1] = 120 + num - settingMenu.ch2TareValue;
+	    	result[1][1] = (120 + num - settingMenu.ch2TareValue)* (settingMenu.CH2SignInversionFlg?-1:1);
 	    	result[1][2] = 120 + num;
 	    	double resolution = 3204;
 	    	result[0][0] = result[0][2] * resolution;
@@ -252,8 +252,8 @@ public class MainScreenController {
 	    		}
     			result[0][0] = aveValue[0];
     			result[1][0] = aveValue[1];
-    			result[0][1] = aveWeight[0] - settingMenu.ch1TareValue;
-    			result[1][1] = aveWeight[1] - settingMenu.ch2TareValue;
+    			result[0][1] = (aveWeight[0] - settingMenu.ch1TareValue) * (settingMenu.CH1SignInversionFlg?-1:1);
+    			result[1][1] = (aveWeight[1] - settingMenu.ch2TareValue) * (settingMenu.CH2SignInversionFlg?-1:1);
     			result[0][2] = aveWeight[0];
     			result[1][2] = aveWeight[1];
     		}
@@ -275,6 +275,12 @@ public class MainScreenController {
     void onCaliblationController(ActionEvent event) {
     	if( calibExFlg ) return;
     	calibExFlg = true;
+
+    	if( !passwordCheck() ) {
+    		calibExFlg = false;
+    		return;
+    	}
+
     	try {
 			tr.shutdown();
 			tr.awaitTermination(33, TimeUnit.MICROSECONDS);
@@ -282,8 +288,8 @@ public class MainScreenController {
 			System.out.println(e);
 		}
 
-		FXMLLoader loader = new FXMLLoader(getClass().getResource("caliblation.fxml"));
-		AnchorPane root = null;
+    	FXMLLoader loader = new FXMLLoader(getClass().getResource("caliblation.fxml"));
+    	AnchorPane root = null;
 		try {
 			root = (AnchorPane) loader.load();
 		} catch (IOException ex) {
@@ -301,6 +307,31 @@ public class MainScreenController {
 		tr = Executors.newSingleThreadScheduledExecutor();
 		tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
     	calibExFlg = false;
+    }
+
+    /**
+     * パスワードチェック
+     * @return
+     */
+    private boolean passwordCheck() {
+    	FXMLLoader loader = new FXMLLoader(getClass().getResource("passwordDialog.fxml"));
+		AnchorPane root = null;
+		try {
+			root = (AnchorPane) loader.load();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		Scene scene = new Scene(root,640,480);
+		Stage stage = new Stage();
+		stage.setScene(scene);
+		stage.initStyle(StageStyle.UNDECORATED);
+		stage.setResizable(false);
+		stage.showAndWait();
+		if( PasswordDialogController.flg == false ){//パスワードが不一致の場合
+    		Platform.runLater(() ->infoLB.setText("パスワードが違います\n"));
+    		return false;
+		}
+		return true;
     }
 
     /**
@@ -581,6 +612,11 @@ public class MainScreenController {
     	if( settingExFlg ) return;
 
     	settingExFlg = true;
+    	
+    	if( !passwordCheck() ) {
+    		settingExFlg = false;
+    		return;
+    	}
 
     	try {
 			tr.shutdown();

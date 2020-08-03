@@ -296,6 +296,13 @@ public class csvSaveLoad {
 	        subStr[7] = String.valueOf( settingMenu.ch2TareValue );
         	writer.writeNext(subStr);
 
+        	//エラーカウント
+			writer.writeNext(new String[] { "" });
+			writer.writeNext(new String[] { "[MesureErrorCount]" });
+			writer.writeNext(new String[] {
+					String.valueOf(MainScreenController.mesureErrCnt[0]),
+					String.valueOf(MainScreenController.mesureErrCnt[1]) });
+
         	//日時データー
 			writer.writeNext(new String[] { "" });
 			writer.writeNext(new String[] { "[Date]" });

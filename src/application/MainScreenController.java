@@ -133,7 +133,9 @@ public class MainScreenController {
     long lockedTimer =System.currentTimeMillis();
 	long lockedTimerThresh = 30000;//30秒以上10ｇを越えなければ測定停止
 	//測定計測エラー数
-	static int[] mesureErrCnt = new int[2];
+	public static int[] mesureErrCnt = new int[2];
+	final int mesureErrCntTreth = 1000;
+	boolean mesureErrFlg = false;
 
 	//スレッドオブジェクト
 	ScheduledExecutorService tr = Executors.newSingleThreadScheduledExecutor();
@@ -215,6 +217,7 @@ public class MainScreenController {
 					        enableCnt[i]++;
 				        }else {
 				        	System.out.println("faileMesureCnt(RpeetOver10) = " + cnt );
+				        	mesureErrCnt[i]++;
 				        }
         			}
 		        }
@@ -338,6 +341,8 @@ public class MainScreenController {
 				(int)Math.floor( ((double)0/1000.0/60.0) % 60),
 				(int)(0/1000) % 60
 				)));
+		//機器異常リセット
+		mesureErrFlg = false;
 
     	resetExFlg = false;
     }
@@ -401,6 +406,9 @@ public class MainScreenController {
 		    	if( result[0][0] != -1 ) {
 		    		int judgmentFlg = 0;//0:合格 1～2:警告 3～:規格外
 		    		//規格判定
+		    		if( mesureErrCnt[0] > mesureErrCntTreth || mesureErrCnt[1] > mesureErrCntTreth) {
+		    			mesureErrFlg = true;
+		    		}
 		    		if( result[0][1] >
 		    			settingMenu.ch1MaxErrorValue - (settingMenu.ch1MaxErrorValue*settingMenu.ch1RatioValue) ) {
 		    			Platform.runLater(() ->infoLB.setText("CH1 MaxWarning"));
@@ -447,7 +455,7 @@ public class MainScreenController {
 		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ffff00ff")));
 		    			Platform.runLater(() ->judgmentLB.setText("!!!"));
 		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
-		    		}else {
+		    		}else if( judgmentFlg > 2){
 		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
 		    			Platform.runLater(() ->judgmentLB.setText("NG"));
 		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
@@ -456,7 +464,15 @@ public class MainScreenController {
 			    			mp_error.play();
 		    			}
 		    		}
-
+		    		if( mesureErrFlg ) {
+		    			if( !mp_error.isPlaying() ) {
+			    			mp_error.play();
+		    			}
+		    			Platform.runLater(() ->infoLB.setText("Equipment abnormality"));
+		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
+		    			Platform.runLater(() ->judgmentLB.setText("×"));
+		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
+		    		}
 
 		    		//チャート更新
 		    		long chartTime = System.currentTimeMillis() - startTime.getTime();//経過時間(mSec単位)

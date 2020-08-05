@@ -198,8 +198,8 @@ public class csvSaveLoad {
 			settingMenu.ch2MinErrorValue = Long.valueOf(subStr[5]);
 			settingMenu.ch1TareValue = Double.valueOf(subStr[6]);
 			settingMenu.ch2TareValue = Double.valueOf(subStr[7]);
-			settingMenu.CH1SignInversionFlg = subStr[8]=="false"?false:true;
-			settingMenu.CH2SignInversionFlg = subStr[9]=="false"?false:true;
+			settingMenu.CH1SignInversionFlg = subStr[8]=="FALSE"?false:true;
+			settingMenu.CH2SignInversionFlg = subStr[9]=="FALSE"?false:true;
 
 
 		} catch (Exception e) {

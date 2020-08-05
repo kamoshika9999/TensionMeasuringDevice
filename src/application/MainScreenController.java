@@ -501,8 +501,9 @@ public class MainScreenController {
 		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ffff00ff")));
 		    			Platform.runLater(() ->judgmentLB.setText("!!!"));
 		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
-
-		    			if( !mp_error3.isPlaying() && !mesureErrFlg) {
+		    	    	//約60秒未満は鳴らさない
+		    			if( !mp_error3.isPlaying() && !mesureErrFlg &&
+		    					( System.currentTimeMillis() - startTime.getTime() > 60*1000 )) {
 			    			mp_error3.play();
 		    			}
 
@@ -510,8 +511,9 @@ public class MainScreenController {
 		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
 		    			Platform.runLater(() ->judgmentLB.setText("NG"));
 		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
-
-		    			tentionErrFlg = true;
+		    			if( System.currentTimeMillis() - startTime.getTime() > 60*1000 ) {
+		    				tentionErrFlg = true;
+		    			}
 		    		}
 
 		    		//チャート更新
@@ -581,7 +583,7 @@ public class MainScreenController {
 	    	}
 	    	//テンション異常
 	    	if( tentionErrFlg ) {
-    			if( !mp_error.isPlaying() && !mesureErrFlg) {
+    			if( !mp_error.isPlaying() && !mesureErrFlg ) {
 	    			mp_error.play();
     			}
 	    	}
@@ -612,7 +614,7 @@ public class MainScreenController {
     	if( settingExFlg ) return;
 
     	settingExFlg = true;
-    	
+
     	if( !passwordCheck() ) {
     		settingExFlg = false;
     		return;
@@ -726,6 +728,11 @@ public class MainScreenController {
  				  }
  			  }else {
  				 mesureStopFlg  = false;
+ 			  }
+ 			  if( mesureStopFlg && System.currentTimeMillis() - lockedTimer > 8 * 60 *60 *1000 ) {
+ 				  shotCnt = 0;
+ 				  mesureErrCnt[0] = 0;
+ 				  mesureErrCnt[1] = 0;
  			  }
  		   }
  	   };

@@ -18,7 +18,7 @@
                   <Font name="Arial" size="18.0" />
                </font>
             </Label>
-            <Label fx:id="hxvalueLB1" layoutX="246.0" layoutY="42.0" prefHeight="35.0" prefWidth="139.0" text="10000000">
+            <Label fx:id="hxvalueLB1" layoutX="246.0" layoutY="42.0" prefHeight="35.0" prefWidth="139.0" text="---------">
                <font>
                   <Font name="Arial" size="18.0" />
                </font>
@@ -28,7 +28,7 @@
                   <Font name="Arial" size="18.0" />
                </font>
             </Label>
-            <Label fx:id="hxvalueLB2" layoutX="246.0" layoutY="89.0" prefHeight="35.0" prefWidth="139.0" text="120">
+            <Label fx:id="hxvalueLB2" layoutX="246.0" layoutY="89.0" prefHeight="35.0" prefWidth="139.0" text="--------">
                <font>
                   <Font name="Arial" size="18.0" />
                </font>
@@ -43,7 +43,7 @@
                   <Font size="14.0" />
                </font>
             </Button>
-            <Label fx:id="hxvalueLB4" layoutX="246.0" layoutY="130.0" prefHeight="35.0" prefWidth="94.0" text="10000000">
+            <Label fx:id="hxvalueLB4" layoutX="246.0" layoutY="130.0" prefHeight="35.0" prefWidth="94.0" text="---------">
                <font>
                   <Font name="Arial" size="18.0" />
                </font>
@@ -53,7 +53,7 @@
                   <Font name="Arial" size="18.0" />
                </font>
             </Label>
-            <Label fx:id="hxvalueLB5" layoutX="246.0" layoutY="171.0" prefHeight="35.0" prefWidth="94.0" text="120">
+            <Label fx:id="hxvalueLB5" layoutX="246.0" layoutY="171.0" prefHeight="35.0" prefWidth="94.0" text="--------">
                <font>
                   <Font name="Arial" size="18.0" />
                </font>
@@ -94,12 +94,12 @@
                   <Font name="Arial" size="14.0" />
                </font>
             </Label>
-            <Label fx:id="ch1AveLB" layoutX="438.0" layoutY="54.0" prefHeight="27.0" prefWidth="65.0" text="125" textAlignment="RIGHT" textOverrun="CLIP">
+            <Label fx:id="ch1AveLB" layoutX="438.0" layoutY="54.0" prefHeight="27.0" prefWidth="65.0" text="----" textAlignment="RIGHT" textOverrun="CLIP">
                <font>
                   <Font name="Arial Bold" size="18.0" />
                </font>
             </Label>
-            <Label fx:id="ch2AveLB" layoutX="438.0" layoutY="134.0" prefHeight="27.0" prefWidth="65.0" text="126" textAlignment="RIGHT" textOverrun="CLIP">
+            <Label fx:id="ch2AveLB" layoutX="438.0" layoutY="134.0" prefHeight="27.0" prefWidth="65.0" text="----" textAlignment="RIGHT" textOverrun="CLIP">
                <font>
                   <Font name="Arial Bold" size="18.0" />
                </font>
@@ -109,7 +109,7 @@
                   <Font name="Arial" size="10.0" />
                </font>
             </Label>
-            <Label fx:id="ch1ErrCntLB" layoutX="519.0" layoutY="83.0" prefHeight="17.0" prefWidth="94.0" text="0" textAlignment="RIGHT">
+            <Label fx:id="ch1ErrCntLB" layoutX="519.0" layoutY="83.0" prefHeight="17.0" prefWidth="94.0" text="----" textAlignment="RIGHT">
                <font>
                   <Font name="Arial" size="12.0" />
                </font></Label>
@@ -118,7 +118,7 @@
                   <Font name="Arial" size="10.0" />
                </font>
             </Label>
-            <Label fx:id="ch2ErrCntLB" layoutX="519.0" layoutY="163.0" prefHeight="17.0" prefWidth="94.0" text="0" textAlignment="RIGHT">
+            <Label fx:id="ch2ErrCntLB" layoutX="519.0" layoutY="163.0" prefHeight="17.0" prefWidth="94.0" text="----" textAlignment="RIGHT">
                <font>
                   <Font name="Arial" size="12.0" />
                </font></Label>
@@ -158,27 +158,27 @@
                   <Font name="Arial" size="12.0" />
                </font>
             </Label>
-            <Label fx:id="ch1MaxLB" layoutX="438.0" layoutY="76.0" prefHeight="27.0" prefWidth="65.0" text="140" textAlignment="RIGHT" textOverrun="CLIP">
+            <Label fx:id="ch1MaxLB" layoutX="438.0" layoutY="76.0" prefHeight="27.0" prefWidth="65.0" text="----" textAlignment="RIGHT" textOverrun="CLIP">
                <font>
                   <Font name="Arial Bold" size="14.0" />
                </font>
             </Label>
-            <Label fx:id="ch1MinLB" layoutX="438.0" layoutY="100.0" prefHeight="27.0" prefWidth="65.0" text="89" textAlignment="RIGHT" textOverrun="CLIP">
+            <Label fx:id="ch1MinLB" layoutX="438.0" layoutY="100.0" prefHeight="27.0" prefWidth="65.0" text="----" textAlignment="RIGHT" textOverrun="CLIP">
                <font>
                   <Font name="Arial Bold" size="14.0" />
                </font>
             </Label>
-            <Label fx:id="ch2MaxLB" layoutX="438.0" layoutY="156.0" prefHeight="27.0" prefWidth="65.0" text="134" textAlignment="RIGHT" textOverrun="CLIP">
+            <Label fx:id="ch2MaxLB" layoutX="438.0" layoutY="156.0" prefHeight="27.0" prefWidth="65.0" text="----" textAlignment="RIGHT" textOverrun="CLIP">
                <font>
                   <Font name="Arial Bold" size="14.0" />
                </font>
             </Label>
-            <Label fx:id="ch2MinLB" layoutX="438.0" layoutY="179.0" prefHeight="27.0" prefWidth="65.0" text="105" textAlignment="RIGHT" textOverrun="CLIP">
+            <Label fx:id="ch2MinLB" layoutX="438.0" layoutY="179.0" prefHeight="27.0" prefWidth="65.0" text="----" textAlignment="RIGHT" textOverrun="CLIP">
                <font>
                   <Font name="Arial Bold" size="14.0" />
                </font>
             </Label>
-            <Label fx:id="mesureCntLB" layoutX="204.0" layoutY="19.0" maxHeight="17.0" maxWidth="156.0" minHeight="17.0" minWidth="80.0" prefHeight="17.0" prefWidth="129.0" text="3 H59 M53 S" textAlignment="JUSTIFY">
+            <Label fx:id="mesureCntLB" layoutX="204.0" layoutY="19.0" maxHeight="17.0" maxWidth="156.0" minHeight="17.0" minWidth="80.0" prefHeight="17.0" prefWidth="129.0" text="--------------------" textAlignment="JUSTIFY">
                <font>
                   <Font name="Arial Bold" size="18.0" />
                </font>

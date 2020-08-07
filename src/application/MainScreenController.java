@@ -344,7 +344,7 @@ public class MainScreenController {
     	resetExFlg = true;
 
     	//約60秒未満は保存しない
-    	if(shotCnt > 1) {//startTimeオブジェクトがnullの時は実行しない
+    	if(shotCnt > 100) {//startTimeオブジェクトがnullの時は実行しない
 	    	if( System.currentTimeMillis() - startTime.getTime() > 60*1000 ) {
 				if( !csvSaveLoad.saveDataSet(tention_dataset, startTime,ch1_max,ch1_min,ch1_ave,ch2_max,ch2_min,ch2_ave,shotCnt) ) {
 					System.out.println("データーセット保存異常");
@@ -363,28 +363,19 @@ public class MainScreenController {
         ch2_ave = 0;
         shotCnt=0;
 
-        startTime = new Timestamp(System.currentTimeMillis());
-
-		//チャート更新
+		//チャート用データーセットリセット
 		Platform.runLater( () ->tention_dataset.getSeries(0).clear());
 		Platform.runLater( () ->tention_dataset.getSeries(1).clear());
-		/*
-		Platform.runLater(() ->this.ch1ErrCntLB.setText(String.valueOf( mesureErrCnt[0] )));
-		Platform.runLater(() ->this.ch2ErrCntLB.setText(String.valueOf( mesureErrCnt[1] )));
-		//経過時間表示
-		Platform.runLater( () ->mesureCntLB.setText( String.format("%d H %d M %d S",
-				(int)Math.floor( (double)0/1000.0/3600.0 ),
-				(int)Math.floor( ((double)0/1000.0/60.0) % 60),
-				(int)(0/1000) % 60
-				)));
-		*/
+		Platform.runLater( () ->mesureCntLB.setText("----------"));
+
 		//機器異常リセット ※eventがnullの時は自動停止時に呼び出されたと判断しリセットしない
+		//機器異常は常時監視されている8H以内に規定の回数計測エラーが発生した場合、巻きが停止して
+		//いても機器異常のアラームは鳴動する
 		if( event != null ) {
 			mesureErrFlg = false;
 	        for(int i=0;i<2;i++) {
 	        	mesureErrCnt[i] = 0;
 	        }
-
 	        tentionErrFlg = false;
 
 	        //メディアプレイヤー再生強制停止
@@ -511,7 +502,7 @@ public class MainScreenController {
 		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
 		    			Platform.runLater(() ->judgmentLB.setText("NG"));
 		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
-		    			if( System.currentTimeMillis() - startTime.getTime() > 60*1000 ) {
+		    			if( shotCnt>100 && System.currentTimeMillis() - startTime.getTime() > 60*1000 ) {
 		    				tentionErrFlg = true;
 		    			}
 		    		}
@@ -527,11 +518,15 @@ public class MainScreenController {
 		    		}
 		    		//-----------------------------------------------------------------------------------------------
 		    		//経過時間表示
-		    		Platform.runLater( () ->mesureCntLB.setText( String.format("%d H %d M %d S",
-		    				(int)Math.floor( (double)chartTime/1000.0/3600.0 ),
-		    				(int)Math.floor( ((double)chartTime/1000.0/60.0) % 60),
-		    				(int)(chartTime/1000) % 60
-		    				)));
+		    		if( shotCnt > 0) {
+			    		Platform.runLater( () ->mesureCntLB.setText( String.format("%d H %d M %d S",
+			    				(int)Math.floor( (double)chartTime/1000.0/3600.0 ),
+			    				(int)Math.floor( ((double)chartTime/1000.0/60.0) % 60),
+			    				(int)(chartTime/1000) % 60
+			    				)));
+		    		}else {
+		    			Platform.runLater( () ->mesureCntLB.setText("----------"));
+		    		}
 
 		    		//データーセットはdouble値 チャート表示は整数とする為、変換表示させる
 		    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getDomainAxis()).
@@ -727,7 +722,10 @@ public class MainScreenController {
 	 				  onResetBT(null);
  				  }
  			  }else {
- 				 mesureStopFlg  = false;
+ 			     if( mesureStopFlg ) {
+	 				 startTime = new Timestamp(System.currentTimeMillis());
+	 				 mesureStopFlg  = false;
+ 			     }
  			  }
  			  if( mesureStopFlg && System.currentTimeMillis() - lockedTimer > 8 * 60 *60 *1000 ) {
  				  shotCnt = 0;

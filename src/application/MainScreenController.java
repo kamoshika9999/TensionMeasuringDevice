@@ -493,7 +493,7 @@ public class MainScreenController {
 		    			Platform.runLater(() ->judgmentLB.setText("!!!"));
 		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
 		    	    	//約60秒未満は鳴らさない
-		    			if( !mp_error3.isPlaying() && !mesureErrFlg &&
+		    			if( !mp_error3.isPlaying() && !mesureErrFlg && mesureTreshFlg &&
 		    					( System.currentTimeMillis() - startTime.getTime() > 60*1000 )) {
 			    			mp_error3.play();
 		    			}
@@ -578,7 +578,7 @@ public class MainScreenController {
 	    	}
 	    	//テンション異常
 	    	if( tentionErrFlg ) {
-    			if( !mp_error.isPlaying() && !mesureErrFlg ) {
+    			if( !mp_error.isPlaying() && !mesureErrFlg && mesureTreshFlg) {
 	    			mp_error.play();
     			}
 	    	}
@@ -586,7 +586,7 @@ public class MainScreenController {
 	    	if( mesureErrCnt[0] > mesureErrCntTreth || mesureErrCnt[1] > mesureErrCntTreth) {
     			mesureErrFlg = true;
     		}
-    		if( mesureErrFlg ) {
+    		if( mesureErrFlg && mesureTreshFlg) {
     			if( !mp_error2.isPlaying() ) {
 	    			mp_error2.play();
     			}
@@ -734,9 +734,10 @@ public class MainScreenController {
  			  }
  		   }
  	   };
- 	  startTime = new Timestamp(System.currentTimeMillis());
- 	   tr = Executors.newSingleThreadScheduledExecutor();
-	   tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
+ 	  startTime = new Timestamp(System.currentTimeMillis());//mesure()内でnullを避けるため
+ 	  mesureStopFlg = true;
+ 	  tr = Executors.newSingleThreadScheduledExecutor();
+	  tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
 
 
     }

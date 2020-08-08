@@ -5,13 +5,13 @@
     <!--define folder properties-->
     <property name="dir.buildfile" value="."/>
     <property name="dir.workspace" value="${dir.buildfile}/.."/>
-    <property name="dir.jarfile" value="//192.168.5.59/raspberry_pi"/>
-	
-    <property name="raspberrypi" value="192.168.5.59" />
+    <property name="dir.jarfile" value="//192.168.5.160/raspberry_pi"/>
+
+    <property name="raspberrypi" value="192.168.5.160" />
     <property name="raspberryfolder" value="/home/pi/samba" />
     <property name="username" value="pi" />
     <property name="password" value="pi" />
-	
+
     <target name="create_run_jar">
         <jar destfile="${dir.jarfile}/test.jar" filesetmanifest="mergewithoutmain">
             <manifest>

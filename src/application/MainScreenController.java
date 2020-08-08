@@ -139,7 +139,7 @@ public class MainScreenController {
 	//テンションエラーフラグ
 	boolean tentionErrFlg = false;
 	//スレッドオブジェクト
-	ScheduledExecutorService tr = Executors.newSingleThreadScheduledExecutor();
+	ScheduledExecutorService tr;
 	Runnable tentionMesure;
 
 	//メディアプレイヤー
@@ -699,9 +699,9 @@ public class MainScreenController {
 		String filePath = jarFile.getParent() + File.separator + wavFileString;
 		mp_error = new AudioClip(new File(filePath).toURI().toString());//テンション規格外
 		filePath = jarFile.getParent() + File.separator + wav2FileString;
-		mp_error2 = new AudioClip(new File(filePath).toURI().toString());//機器以上
+		mp_error2 = new AudioClip(new File(filePath).toURI().toString());//機器異常
 		filePath = jarFile.getParent() + File.separator + wav3FileString;
-		mp_error3 = new AudioClip(new File(filePath).toURI().toString());//機器以上
+		mp_error3 = new AudioClip(new File(filePath).toURI().toString());//機器異常
 
 
 
@@ -734,6 +734,8 @@ public class MainScreenController {
  			  }
  		   }
  	   };
+ 	  startTime = new Timestamp(System.currentTimeMillis());
+ 	   tr = Executors.newSingleThreadScheduledExecutor();
 	   tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
 
 

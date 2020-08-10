@@ -16,13 +16,10 @@ public class PasswordDialogController {
 
     @FXML
     private ResourceBundle resources;
-
     @FXML
     private URL location;
-
     @FXML
     private PasswordField pass_text;
-
     @FXML
     private Button OK_btn;
 
@@ -40,8 +37,5 @@ public class PasswordDialogController {
 
     @FXML
     void initialize() {
-        assert pass_text != null : "fx:id=\"pass_text\" was not injected: check your FXML file 'passwordDialog.fxml'.";
-        assert OK_btn != null : "fx:id=\"OK_btn\" was not injected: check your FXML file 'passwordDialog.fxml'.";
-
     }
 }

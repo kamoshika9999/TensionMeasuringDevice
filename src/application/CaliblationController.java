@@ -50,13 +50,10 @@ public class CaliblationController {
     private TextField calibValueTX_2;
     @FXML
     private Label infoLB;;
-
     @FXML
     private Label ch1_resultLB;
     @FXML
     private Label ch2_resultLB;
-
-
 
     //クラス変数
     static long[] emptyValue = new long[2];

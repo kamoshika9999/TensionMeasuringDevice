@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
@@ -59,92 +57,117 @@ public class MainScreenController {
 	@FXML
 	private URL location;
     @FXML
-    private Button getValueBT;
+    private Label hxvalueLB1;//CH1 ロードセル生値ラベル
     @FXML
-    private Label hxvalueLB1;
+    private Label hxvalueLB2;//CH1 変換後の測定値ラベル
     @FXML
-    private Label hxvalueLB2;
+    private Label hxvalueLB4;//CH2 ロードセル生値ラベル
     @FXML
-    private Label hxvalueLB4;
+    private Label hxvalueLB5;//CH2 変換後の測定値ラベル
     @FXML
-    private Label hxvalueLB5;
+    private Button calibrationMenuBT;//キャリブレーションメニューを開くボタン
     @FXML
-    private Button calibrationMenuBT;
+    private BorderPane chartPane;//グラフ表示用コンテナ
     @FXML
-    private BorderPane chartPane;
+    private Label judgmentLB;//判定値表示ラベル
     @FXML
-    private Label judgmentLB;
+    private Label infoLB;//メッセージ表示ラベル
     @FXML
-    private Label infoLB;
+    private Button resetBT;//リセットボタン
     @FXML
-    private Button resetBT;
+    private Button settingMenuBT;//設定メニューを開くボタン
     @FXML
-    private Button settingMenuBT;
+    private Label mesureCntLB;//経過時間表示ラベル
     @FXML
-    private Label mesureCntLB;
+    private Label ch1ErrCntLB;//CH1 計測異常回数(HX711通信異常とノイズによる測定値異常)
     @FXML
-    private Label ch1AveLB;
+    private Label ch2ErrCntLB;//CH2 計測異常回数(HX711通信異常とノイズによる測定値異常)
     @FXML
-    private Label ch2AveLB;
+    private Button shutdownBT;//シャットダウンボタン
     @FXML
-    private Label ch1ErrCntLB;
+    private Label ch1AveLB;//CH1 平均値
     @FXML
-    private Label ch2ErrCntLB;
+    private Label ch1MaxLB;//CH1 最大値
     @FXML
-    private Button shutdownBT;
+    private Label ch1MinLB;//CH1 最小値
     @FXML
-    private Label ch1MaxLB;
+    private Label ch2AveLB;//CH2 平均値
     @FXML
-    private Label ch1MinLB;
+    private Label ch2MaxLB;//CH2 最大値
     @FXML
-    private Label ch2MaxLB;
-    @FXML
-    private Label ch2MinLB;
+    private Label ch2MinLB;//CH2 最小値
 
     //デバッグフラグ
     public static boolean debugFlg = false;
-    //HX711 接続ピンリスト BCM番号で指定 「gpio readall」 で物理ピンと確認すること
+    /*HX711 接続ピンリスト BCM番号で指定 「gpio readall」 で物理ピンと確認すること
+    +-----+-----+---------+------+---+---Pi 3B--+---+------+---------+-----+-----+
+    | BCM | wPi |   Name  | Mode | V | Physical | V | Mode | Name    | wPi | BCM |
+    +-----+-----+---------+------+---+----++----+---+------+---------+-----+-----+
+    |     |     |    3.3v |      |   |  1 || 2  |   |      | 5v      |     |     |
+    |   2 |   8 |   SDA.1 | ALT0 | 1 |  3 || 4  |   |      | 5v      |     |     |
+    |   3 |   9 |   SCL.1 | ALT0 | 1 |  5 || 6  |   |      | 0v      |     |     |
+    |   4 |   7 | GPIO. 7 |   IN | 1 |  7 || 8  | 1 | ALT5 | TxD     | 15  | 14  |
+    |     |     |      0v |      |   |  9 || 10 | 1 | ALT5 | RxD     | 16  | 15  |
+    |  17 |   0 | GPIO. 0 |   IN | 0 | 11 || 12 | 0 | IN   | GPIO. 1 | 1   | 18  |
+    |  27 |   2 | GPIO. 2 |   IN | 0 | 13 || 14 |   |      | 0v      |     |     |
+    |  22 |   3 | GPIO. 3 |   IN | 0 | 15 || 16 | 0 | IN   | GPIO. 4 | 4   | 23  |
+    |     |     |    3.3v |      |   | 17 || 18 | 0 | IN   | GPIO. 5 | 5   | 24  |
+    |  10 |  12 |    MOSI | ALT0 | 0 | 19 || 20 |   |      | 0v      |     |     |
+    |   9 |  13 |    MISO | ALT0 | 0 | 21 || 22 | 0 | IN   | GPIO. 6 | 6   | 25  |
+    |  11 |  14 |    SCLK | ALT0 | 0 | 23 || 24 | 1 | OUT  | CE0     | 10  | 8   |
+    |     |     |      0v |      |   | 25 || 26 | 1 | OUT  | CE1     | 11  | 7   |
+    |   0 |  30 |   SDA.0 |   IN | 1 | 27 || 28 | 1 | IN   | SCL.0   | 31  | 1   |
+    |   5 |  21 | GPIO.21 |   IN | 0 | 29 || 30 |   |      | 0v      |     |     |
+    |   6 |  22 | GPIO.22 |  OUT | 0 | 31 || 32 | 0 | IN   | GPIO.26 | 26  | 12  |
+    |  13 |  23 | GPIO.23 |   IN | 0 | 33 || 34 |   |      | 0v      |     |     |
+    |  19 |  24 | GPIO.24 |  OUT | 0 | 35 || 36 | 0 | IN   | GPIO.27 | 27  | 16  |
+    |  26 |  25 | GPIO.25 |   IN | 0 | 37 || 38 | 0 | IN   | GPIO.28 | 28  | 20  |
+    |     |     |      0v |      |   | 39 || 40 | 0 | IN   | GPIO.29 | 29  | 21  |
+    +-----+-----+---------+------+---+----++----+---+------+---------+-----+-----+
+    | BCM | wPi |   Name  | Mode | V | Physical | V | Mode | Name    | wPi | BCM |
+    +-----+-----+---------+------+---+---Pi 3B--+---+------+---------+-----+-----+
+    */
 	final Pin[] pinNoDAT = {RaspiPin.GPIO_21,RaspiPin.GPIO_23};
 	final Pin[] pinNoCLK = {RaspiPin.GPIO_22,RaspiPin.GPIO_24};
+
 	//HX711 オブジェクト
 	GpioPinDigitalInput[] pinHXDAT = new GpioPinDigitalInput[2];
     GpioPinDigitalOutput[] pinHXCLK = new GpioPinDigitalOutput[2];
     static HX711[] hx = new HX711[2];
 
-    //チャート用データーセット
+    //チャートオブジェクト
     JFreeChart chart_tention;
+    //チャート用データーセット
     XYSeriesCollection tention_dataset;
 
     //測定データー
-    List<Double> ch1_tention = new ArrayList<Double>();
-    List<Double> ch2_tention = new ArrayList<Double>();
-    double ch1_max = 0;
-    double ch2_max = 0;
-    double ch1_min = 9999;
-    double ch2_min = 9999;
-    double ch1_ave = 0;
-    double ch2_ave = 0;
-    long shotCnt = 0;
+    double ch1_ave;
+    double ch1_max;
+    double ch1_min;
+    double ch2_ave;
+    double ch2_max;
+    double ch2_min;
+    long shotCnt;
     Timestamp startTime;
 
-    static boolean mesureFlg =false; //計測中フラグ
+    static boolean mesureFlg =false; //mesure()メソッドを排他的に呼び出すためのフラグ
     boolean mesureTreshFlg =false;//計測結果が絶対値で10g超えている場合True;
-    boolean mesureStopFlg = false;//trueで計測停止
-    long lockedTimer =System.currentTimeMillis();
+    boolean mesureStopFlg = false;//測定が継続されている場合true
+    long lockedTimer =System.currentTimeMillis();//測定を継続するかの判定用のタイマ
 	long lockedTimerThresh = 3000;//3秒以上10ｇを越えなければ測定停止
 	//機器計測エラー数
 	public static int[] mesureErrCnt = new int[2];
-	final int mesureErrCntTreth = 2000;
-	boolean mesureErrFlg = false;
+	final int mesureErrCntTreth = 2000;//8Hの間にmesureErrCntが閾値を超えれば機器異常発生
+	boolean mesureErrFlg = false;//機器異常が発生している場合true
 	//テンションエラーフラグ
-	boolean tentionErrFlg = false;
+	boolean tentionErrFlg = false;//テンションが設定値を超えればtrue
 	//スレッドオブジェクト
-	ScheduledExecutorService tr;
-	Runnable tentionMesure;
+	ScheduledExecutorService tr;//33msec毎に計測が実行される。そのオブジェクト
+	Runnable tentionMesure;//スケジューラーで呼び出されるオブジェクト
 
 	//メディアプレイヤー
 	AudioClip mp_error;
-	final String wavFileString = "117.wav";
+	final String wavFileString = "117.wav";//117.wavとなっているが各号機でwavファイルの中身を変更し配置
 	AudioClip mp_error2;
 	final String wav2FileString = "error.wav";
 	AudioClip mp_error3;
@@ -195,8 +218,6 @@ public class MainScreenController {
 	    	return result;
     	}
     	//-------------------------
-
-
 		maxValue[0] = 0;maxValue[1]=0;
 		minValue[0] = 99999999;minValue[1]=99999999;
     	int[] enableCnt = new int[2];
@@ -206,7 +227,6 @@ public class MainScreenController {
         			if( hx[i].calibrationWeight > 0 ) {
         				hx[i].read();
 				        int cnt = 0;
-
 				        while( hx[i].value == -1) {
 				        	hx[i].read();
 				        	cnt++;
@@ -222,12 +242,10 @@ public class MainScreenController {
 					        aveWeight[i] += hx[i].weight;
 					        enableCnt[i]++;
 				        }else {
-				        	//System.out.println("faileMesureCnt(RpeetOver10) = " + cnt );
-				        	mesureErrCnt[i]++;
+				        	mesureErrCnt[i]++;//11回連続-1ならば機器異常回数をプラスする
 				        }
         			}
 		        }
-
     		}
     		//測定のレンジがhx[i].resolution * 10倍(10g)を超えていたら結果は-1になる
     		boolean flg=true;
@@ -235,7 +253,7 @@ public class MainScreenController {
     			if( hx[i].calibrationWeight > 0 ) {
 	    			if( maxValue[i] - minValue[i] > hx[i].resolution * 10) {
 	    				flg=false;
-	    				mesureErrCnt[i]++;
+	    				mesureErrCnt[i]++;//機器異常回数をプラスする
 	    				System.out.println("******************************");
 	    				System.out.println("MesureOver " + (hx[i].resolution * 10) + "="+(maxValue[i] - minValue[i]));
 	    				for(int j=0;j<rpeetCnt;j++) {
@@ -245,7 +263,7 @@ public class MainScreenController {
 	    			}
     			}
     		}
-    		if( flg ) {
+    		if( flg ) {//測定レンジが規定値以上の場合resultは-1が入ったまま返される
 	    		for(int i=0;i<2;i++) {
 			        aveValue[i] /= enableCnt[i];
 			        aveWeight[i] /= enableCnt[i];
@@ -259,28 +277,27 @@ public class MainScreenController {
     		}
     	}catch(Exception e) {
     		System.out.println(e);
-
     	}
     	mesureFlg = false;
-
      	return result;
     }
 
-    @FXML
-    void onGetValueBT(ActionEvent event) {
-    	mesure();
-    }
-
+    /**
+     * キャリブレーションメニューを開く
+     * @param event
+     */
     @FXML
     void onCaliblationController(ActionEvent event) {
-    	if( calibExFlg ) return;
+    	if( calibExFlg ) return;//連続でボタンを押されるのを回避
     	calibExFlg = true;
 
+    	//パスワードチェック パスワードはソースコードに埋め込み
     	if( !passwordCheck() ) {
     		calibExFlg = false;
     		return;
     	}
 
+    	//計測スレッド停止
     	try {
 			tr.shutdown();
 			tr.awaitTermination(33, TimeUnit.MICROSECONDS);
@@ -304,6 +321,7 @@ public class MainScreenController {
 		//設定ウィンドウを開く
 		stage.showAndWait();
 
+		//計測スレッド再開
 		tr = Executors.newSingleThreadScheduledExecutor();
 		tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
     	calibExFlg = false;
@@ -344,7 +362,7 @@ public class MainScreenController {
     	resetExFlg = true;
 
     	//約60秒未満は保存しない
-    	if(shotCnt > 100) {//startTimeオブジェクトがnullの時は実行しない
+    	if(startTime !=null) {//startTimeオブジェクトがnullの時は実行しない
 	    	if( System.currentTimeMillis() - startTime.getTime() > 60*1000 ) {
 				if( !csvSaveLoad.saveDataSet(tention_dataset, startTime,ch1_max,ch1_min,ch1_ave,ch2_max,ch2_min,ch2_ave,shotCnt) ) {
 					System.out.println("データーセット保存異常");
@@ -353,8 +371,6 @@ public class MainScreenController {
 			}
     	}
 
-    	ch1_tention.clear();
-        ch2_tention.clear();
         ch1_max = 0;
         ch2_max = 0;
         ch1_min = 9999;
@@ -368,7 +384,7 @@ public class MainScreenController {
 		Platform.runLater( () ->tention_dataset.getSeries(1).clear());
 		Platform.runLater( () ->mesureCntLB.setText("----------"));
 
-		//機器異常リセット ※eventがnullの時は自動停止時に呼び出されたと判断しリセットしない
+		//機器異常リセット ※eventがnullの時は自動停止時に呼び出されたと判断しアラーム鳴動を止めない
 		//機器異常は常時監視されている8H以内に規定の回数計測エラーが発生した場合、巻きが停止して
 		//いても機器異常のアラームは鳴動する
 		if( event != null ) {
@@ -377,36 +393,19 @@ public class MainScreenController {
 	        	mesureErrCnt[i] = 0;
 	        }
 	        tentionErrFlg = false;
-
 	        //メディアプレイヤー再生強制停止
 			if( mp_error != null ) mp_error.stop();
 			if( mp_error2 != null ) mp_error2.stop();
 		}
 
-
     	resetExFlg = false;
     }
 
     /**
-     * ボタンの表示、非表示の切り替え
-     * @param visibleFlg true:表示 false:非表示
+     * 計測用メインメソッド
      */
-    private void visibleBT(boolean visibleFlg) {
-    	if( !visibleFlg ) {
-			Platform.runLater( () -> this.calibrationMenuBT.setVisible(false));
-			Platform.runLater( () -> this.settingMenuBT.setVisible(false));
-			Platform.runLater( () -> this.resetBT.setVisible(false));
-			Platform.runLater( () -> this.shutdownBT.setVisible(false));
-    	}else {
-			Platform.runLater( () -> this.calibrationMenuBT.setVisible(true));
-			Platform.runLater( () -> this.settingMenuBT.setVisible(true));
-			Platform.runLater( () -> this.resetBT.setVisible(true));
-			Platform.runLater( () -> this.shutdownBT.setVisible(true));
-    	}
-    }
-
     private void mesure() {
-    		if(mesureFlg) return;
+    		if(mesureFlg) return;//別スレッドから同時複数呼び出しを排他する
     		//デバッグコード--------------------
     		if( debugFlg ) {
 		    	try {
@@ -495,46 +494,36 @@ public class MainScreenController {
 		    	    	//約60秒未満は鳴らさない
 		    			if( !mp_error3.isPlaying() && !mesureErrFlg && mesureTreshFlg &&
 		    					( System.currentTimeMillis() - startTime.getTime() > 60*1000 )) {
-			    			mp_error3.play();
+			    			mp_error3.play();//テンション警告を鳴らす
 		    			}
 
 		    		}else if( judgmentFlg > 2){
 		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
 		    			Platform.runLater(() ->judgmentLB.setText("NG"));
 		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
-		    			if( shotCnt>100 && System.currentTimeMillis() - startTime.getTime() > 60*1000 ) {
+		    			//計測開始から一定時間経過後かつ10gを超えている場合のみエラーフラグをたてる
+		    			if( System.currentTimeMillis()-startTime.getTime()>60*1000  && mesureTreshFlg) {
 		    				tentionErrFlg = true;
 		    			}
 		    		}
 
-		    		//チャート更新
+		    		//経過時間計算
 		    		long chartTime = System.currentTimeMillis() - startTime.getTime();//経過時間(mSec単位)
 		    		//データーセットは表示の都合でDouble値で格納する
 		    		Platform.runLater( () ->tention_dataset.getSeries(0).add((double)chartTime/1000.0,result[0][1]));
 		    		Platform.runLater( () ->tention_dataset.getSeries(1).add((double)chartTime/1000.0,result[1][1]));
-		    		//デバッグ用-------------------------------------------------------------------------------------
-		    		if( debugFlg ) {
-		    	        //System.out.println("[ShotCnt]="+shotCnt+" [dataSetSize]=" + ( (8+8)*2*shotCnt/1024) + "Kbyte");
-		    		}
-		    		//-----------------------------------------------------------------------------------------------
 		    		//経過時間表示
-		    		if( shotCnt > 0) {
-			    		Platform.runLater( () ->mesureCntLB.setText( String.format("%d H %d M %d S",
-			    				(int)Math.floor( (double)chartTime/1000.0/3600.0 ),
-			    				(int)Math.floor( ((double)chartTime/1000.0/60.0) % 60),
-			    				(int)(chartTime/1000) % 60
-			    				)));
-		    		}else {
-		    			Platform.runLater( () ->mesureCntLB.setText("----------"));
-		    		}
+		    		Platform.runLater( () ->mesureCntLB.setText( String.format("%d H %d M %d S",
+		    				(int)Math.floor( (double)chartTime/1000.0/3600.0 ),
+		    				(int)Math.floor( ((double)chartTime/1000.0/60.0) % 60),
+		    				(int)(chartTime/1000) % 60
+		    				)));
 
 		    		//データーセットはdouble値 チャート表示は整数とする為、変換表示させる
 		    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getDomainAxis()).
 							setRange( (chartTime/1000)<=60 ? 0 : (chartTime/1000)-60,(chartTime/1000)<1?1:(chartTime/1000) ));
 
-		    		//データー追加
-		    		ch1_tention.add(result[0][1]);
-		    		ch2_tention.add(result[1][1]);
+		    		//テンションの最大値、最小値、平均を更新
 		    		if( ch1_max < result[0][1] ) ch1_max = result[0][1];
 		    		if( ch1_min > result[0][1] ) ch1_min = result[0][1];
 		    		if( ch2_max < result[1][1] ) ch2_max = result[1][1];
@@ -578,7 +567,7 @@ public class MainScreenController {
 	    	}
 	    	//テンション異常
 	    	if( tentionErrFlg ) {
-    			if( !mp_error.isPlaying() && !mesureErrFlg && mesureTreshFlg) {
+    			if( !mp_error.isPlaying() && !mesureErrFlg) {
 	    			mp_error.play();
     			}
 	    	}
@@ -586,7 +575,7 @@ public class MainScreenController {
 	    	if( mesureErrCnt[0] > mesureErrCntTreth || mesureErrCnt[1] > mesureErrCntTreth) {
     			mesureErrFlg = true;
     		}
-    		if( mesureErrFlg && mesureTreshFlg) {
+    		if( mesureErrFlg ) {
     			if( !mp_error2.isPlaying() ) {
 	    			mp_error2.play();
     			}
@@ -653,16 +642,16 @@ public class MainScreenController {
     void onShutdownBT(ActionEvent event) {
     	System.exit(0);
     }
+
     /**
      * 初期化
      * @throws InterruptedException
      */
     @FXML
     void initialize() throws InterruptedException {
-        GpioUtil.enableNonPrivilegedAccess();
-
+    	//GPIO初期化
+    	GpioUtil.enableNonPrivilegedAccess();
         GpioController gpio = GpioFactory.getInstance();
-
         for(int i=0;i<2;i++) {
 	        pinHXDAT[i] = gpio.provisionDigitalInputPin(pinNoDAT[i],
 	        		"HX_DAT"+String.valueOf(i), PinPullResistance.OFF);
@@ -670,18 +659,18 @@ public class MainScreenController {
 	        		"HX_CLK"+String.valueOf(i), PinState.LOW);
 	        hx[i] = new HX711(pinHXDAT[i], pinHXCLK[i], 128);
         }
+
+        //設定データーロード
+        csvSaveLoad.settingValueLoad();
+
         //キャリブレーションデーターロード
         csvSaveLoad.calibDataLoad(
         		CaliblationController.emptyValue,
         		CaliblationController.calibValue,
         		CaliblationController.calibWeight,
         		CaliblationController.resolution);
-        //設定データーロード
-        csvSaveLoad.settingValueLoad();
 
-        //測定データリセット実行
-        onResetBT(null);
-
+        //ロードされたキャリブレーションデーターをhxオブジェクトへセット
         for(int i=0;i<2;i++) {
 	    	hx[i].emptyValue =  CaliblationController.emptyValue[i];
 	    	hx[i].calibrationValue = CaliblationController.calibValue[i];
@@ -689,7 +678,11 @@ public class MainScreenController {
 	    	hx[i].resolution = CaliblationController.resolution[i];
     	}
 
+        //測定データリセット実行
+        onResetBT(null);
+
         //メディアプレイヤー準備
+        //wavファイルはjarと同一フォルダに置くこと
 		File jarFile = null;
 		try {
 			jarFile = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
@@ -703,44 +696,45 @@ public class MainScreenController {
 		filePath = jarFile.getParent() + File.separator + wav3FileString;
 		mp_error3 = new AudioClip(new File(filePath).toURI().toString());//機器異常
 
-
-
         //チャートオブジェクト作成
         chart_tention = chartFact();
 
-        //自動計測開始
- 	   tentionMesure = new Runnable() {
+        //自動計測用スレッド
+ 	   	tentionMesure = new Runnable() {
 		@Override
- 		   public void run() {
-			  mesure();
- 			  if( mesureTreshFlg ) {
- 				  lockedTimer = System.currentTimeMillis();
-  			  }
- 			  if( System.currentTimeMillis() - lockedTimer > lockedTimerThresh) {
- 				  if( !mesureStopFlg) {
-	 				  mesureStopFlg  = true;
-	 				  onResetBT(null);
- 				  }
- 			  }else {
- 			     if( mesureStopFlg ) {
-	 				 startTime = new Timestamp(System.currentTimeMillis());
-	 				 mesureStopFlg  = false;
- 			     }
- 			  }
- 			  if( mesureStopFlg && System.currentTimeMillis() - lockedTimer > 8 * 60 *60 *1000 ) {
- 				  shotCnt = 0;
- 				  mesureErrCnt[0] = 0;
- 				  mesureErrCnt[1] = 0;
- 			  }
- 		   }
- 	   };
- 	  startTime = new Timestamp(System.currentTimeMillis());//mesure()内でnullを避けるため
- 	  mesureStopFlg = true;
- 	  tr = Executors.newSingleThreadScheduledExecutor();
-	  tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
-
-
+ 			public void run() {
+				mesure();
+				if( mesureTreshFlg ) {//10gを超えていれば設備は動作中と判断
+					lockedTimer = System.currentTimeMillis();
+  			  	}
+				if( System.currentTimeMillis() - lockedTimer > lockedTimerThresh) {
+					if( !mesureStopFlg) {
+						mesureStopFlg  = true;
+						onResetBT(null);
+					}
+				}else {
+					if( mesureStopFlg ) {
+						startTime = new Timestamp(System.currentTimeMillis());
+						mesureStopFlg  = false;
+					}
+				}
+				if( System.currentTimeMillis() - lockedTimer > 8 * 60 *60 *1000 ) {
+					shotCnt = 0;
+					mesureErrCnt[0] = 0;
+					mesureErrCnt[1] = 0;
+				}
+ 		   	}
+ 	   	};
+ 	   	startTime = new Timestamp(System.currentTimeMillis());//メソッド内でnullを避けるため
+ 	   	mesureStopFlg = true;
+ 	   	tr = Executors.newSingleThreadScheduledExecutor();
+ 	   	tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
     }
+
+    /**
+     * チャートファクトリ
+     * @return
+     */
     private JFreeChart chartFact() {
     	XYSeriesCollection tentionDataSet;
 		tentionDataSet = getChartData();
@@ -832,9 +826,7 @@ public class MainScreenController {
         renderer.setDefaultItemLabelsVisible(true);
          */
 
-
         return chart;
-
     }
     private XYSeriesCollection getChartData(){
         tention_dataset = new XYSeriesCollection();

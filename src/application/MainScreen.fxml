@@ -38,11 +38,6 @@
                   <Font name="Arial" size="18.0" />
                </font>
             </Label>
-            <Button fx:id="getValueBT" disable="true" layoutX="90.0" layoutY="9.0" mnemonicParsing="false" onAction="#onGetValueBT" prefHeight="39.0" prefWidth="174.0" text="START Mesure" visible="false">
-               <font>
-                  <Font size="14.0" />
-               </font>
-            </Button>
             <Label fx:id="hxvalueLB4" layoutX="246.0" layoutY="130.0" prefHeight="35.0" prefWidth="94.0" text="---------">
                <font>
                   <Font name="Arial" size="18.0" />

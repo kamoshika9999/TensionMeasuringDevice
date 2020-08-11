@@ -12,6 +12,8 @@
    <children>
       <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="480.0" prefWidth="640.0">
          <children>
+            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="39.0" layoutX="500.0" layoutY="89.0" stroke="BLACK" strokeType="INSIDE" width="129.0" />
+            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="39.0" layoutX="500.0" layoutY="168.0" stroke="BLACK" strokeType="INSIDE" width="129.0" />
             <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="46.0" layoutX="14.0" layoutY="431.0" stroke="BLACK" strokeType="INSIDE" width="103.0" />
             <Label layoutX="14.0" layoutY="14.0" text="ISIX-T1">
                <font>
@@ -64,7 +66,7 @@
                </font></Button>
             <Line endX="524.5" layoutX="115.0" layoutY="128.0" startX="-115.0" stroke="#5909ee" />
             <Line endX="539.0" layoutX="101.0" layoutY="207.0" startX="-100.0" />
-            <BorderPane fx:id="chartPane" layoutX="13.0" layoutY="208.0" prefHeight="211.0" prefWidth="613.0" />
+            <BorderPane fx:id="chartPane" layoutX="1.0" layoutY="193.0" prefHeight="218.0" prefWidth="640.0" />
             <Label fx:id="judgmentLB" layoutX="17.0" layoutY="437.0" prefHeight="35.0" prefWidth="94.0" text="OK" textFill="#5eff00" textOverrun="CLIP">
                <font>
                   <Font name="Arial Bold" size="24.0" />
@@ -104,7 +106,7 @@
                   <Font name="Arial" size="10.0" />
                </font>
             </Label>
-            <Label fx:id="ch1ErrCntLB" layoutX="519.0" layoutY="83.0" prefHeight="17.0" prefWidth="94.0" text="----" textAlignment="RIGHT">
+            <Label fx:id="ch1ErrCntLB" layoutX="514.0" layoutY="70.0" prefHeight="17.0" prefWidth="94.0" text="----" textAlignment="RIGHT">
                <font>
                   <Font name="Arial" size="12.0" />
                </font></Label>
@@ -113,7 +115,7 @@
                   <Font name="Arial" size="10.0" />
                </font>
             </Label>
-            <Label fx:id="ch2ErrCntLB" layoutX="519.0" layoutY="163.0" prefHeight="17.0" prefWidth="94.0" text="----" textAlignment="RIGHT">
+            <Label fx:id="ch2ErrCntLB" layoutX="514.0" layoutY="148.0" prefHeight="17.0" prefWidth="94.0" text="----" textAlignment="RIGHT">
                <font>
                   <Font name="Arial" size="12.0" />
                </font></Label>
@@ -176,6 +178,26 @@
             <Label fx:id="mesureCntLB" layoutX="204.0" layoutY="19.0" maxHeight="17.0" maxWidth="156.0" minHeight="17.0" minWidth="80.0" prefHeight="17.0" prefWidth="129.0" text="--------------------" textAlignment="JUSTIFY">
                <font>
                   <Font name="Arial Bold" size="18.0" />
+               </font>
+            </Label>
+            <Label layoutX="514.0" layoutY="91.0" prefHeight="17.0" prefWidth="116.0" text="moving average">
+               <font>
+                  <Font name="Arial" size="13.0" />
+               </font>
+            </Label>
+            <Label fx:id="CH1movingaverageLB" layoutX="514.0" layoutY="109.0" prefHeight="17.0" prefWidth="36.0" text="000">
+               <font>
+                  <Font name="Arial" size="13.0" />
+               </font>
+            </Label>
+            <Label layoutX="514.0" layoutY="169.0" prefHeight="17.0" prefWidth="116.0" text="moving average">
+               <font>
+                  <Font name="Arial" size="13.0" />
+               </font>
+            </Label>
+            <Label fx:id="CH2movingaverageLB" layoutX="514.0" layoutY="187.0" prefHeight="17.0" prefWidth="36.0" text="000">
+               <font>
+                  <Font name="Arial" size="13.0" />
                </font>
             </Label>
          </children>

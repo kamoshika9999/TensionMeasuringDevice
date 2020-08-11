@@ -30,6 +30,10 @@ public class PasswordDialogController {
     	}else {
     		flg = false;
     	}
+
+    	//設置用-----------
+    	flg=true;
+    	//-----------------
 		Scene scene = ((Node) event.getSource()).getScene();
 		Window window = scene.getWindow();
 		window.hide();

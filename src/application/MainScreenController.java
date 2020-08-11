@@ -96,6 +96,10 @@ public class MainScreenController {
     private Label ch2MaxLB;//CH2 最大値
     @FXML
     private Label ch2MinLB;//CH2 最小値
+    @FXML
+    private Label CH1movingaverageLB;//10秒間毎の移動平均
+    @FXML
+    private Label CH2movingaverageLB;//10秒間毎の移動平均
 
     //デバッグフラグ
     public static boolean debugFlg = false;
@@ -147,7 +151,7 @@ public class MainScreenController {
     double ch2_ave;
     double ch2_max;
     double ch2_min;
-    long shotCnt;
+    int shotCnt;
     Timestamp startTime;
 
     static boolean mesureFlg =false; //mesure()メソッドを排他的に呼び出すためのフラグ
@@ -398,6 +402,8 @@ public class MainScreenController {
 			if( mp_error2 != null ) mp_error2.stop();
 		}
 
+		startTime = new Timestamp(System.currentTimeMillis());
+
     	resetExFlg = false;
     }
 
@@ -422,27 +428,44 @@ public class MainScreenController {
 
 		    	Platform.runLater(() ->hxvalueLB4.setText(String.format("%.0f",result[1][0])));
 		    	Platform.runLater(() ->hxvalueLB5.setText(String.format("%.0f",result[1][1])));
-	    	}else {
-		    	Platform.runLater(() ->hxvalueLB1.setText("Mesure Error"));
-		    	Platform.runLater(() ->hxvalueLB2.setText("Mesure Error"));
-
-		    	Platform.runLater(() ->hxvalueLB4.setText("Mesure Error"));
-		    	Platform.runLater(() ->hxvalueLB5.setText("Mesure Error"));
-
 	    	}
-
 	    	if( Math.abs(result[0][1]) > 10 || Math.abs(result[1][1]) > 10 ) {
 	    		mesureTreshFlg = true;
 	    	}else {
 	    		mesureTreshFlg = false;
 	    	}
 
+    		//経過時間計算
+    		long chartTime = System.currentTimeMillis() - startTime.getTime();//経過時間(mSec単位)
 
 	    	if( !mesureStopFlg ) {
 	    		shotCnt++;
     			//Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("0xffffffff")));
 
 		    	if( result[0][0] != -1 ) {
+
+		    		//10秒間の移動平均
+		    		/*
+		    		boolean endFlg = false;
+		    		int chartDataIndex = shotCnt - 1;
+		    		double tmpTention = 0.0;
+		    		while( !endFlg && chartTime/1000 > 10 ) {
+			    		double tmpTime=
+			    				(double)((org.jfree.data.xy.XYDataItem)tention_dataset.getSeries(0).getItems().
+			    						get(chartDataIndex)).getX();
+			    		tmpTention += (double)((org.jfree.data.xy.XYDataItem)tention_dataset.getSeries(0).getItems().
+	    						get(chartDataIndex)).getY();
+			    		if( tmpTime > chartTime/1000 - 10 ) {
+			    			endFlg = true;
+			    		}else {
+			    			chartDataIndex--;
+			    		}
+		    		}
+		    		if( endFlg ) {
+		    			tmpTention /= shotCnt -1 - chartDataIndex;
+		    		}
+		    		*/
+
 		    		int judgmentFlg = 0;//0:合格 1～2:警告 3～:規格外
 		    		//規格判定
 		    		if( result[0][1] >
@@ -507,8 +530,6 @@ public class MainScreenController {
 		    			}
 		    		}
 
-		    		//経過時間計算
-		    		long chartTime = System.currentTimeMillis() - startTime.getTime();//経過時間(mSec単位)
 		    		//データーセットは表示の都合でDouble値で格納する
 		    		Platform.runLater( () ->tention_dataset.getSeries(0).add((double)chartTime/1000.0,result[0][1]));
 		    		Platform.runLater( () ->tention_dataset.getSeries(1).add((double)chartTime/1000.0,result[1][1]));
@@ -550,11 +571,11 @@ public class MainScreenController {
 		    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getRangeAxis()).
 							setRange(minRange_,maxRange_));
 		    	}else {
-			    	Platform.runLater(() ->hxvalueLB1.setText(String.format("%.0f",0.0)));
-			    	Platform.runLater(() ->hxvalueLB2.setText(String.format("%.0f",0.0)));
+			    	//Platform.runLater(() ->hxvalueLB1.setText(String.format("%.0f",0.0)));
+			    	//Platform.runLater(() ->hxvalueLB2.setText(String.format("%.0f",0.0)));
 
-			    	Platform.runLater(() ->hxvalueLB4.setText(String.format("%.0f",0.0)));
-			    	Platform.runLater(() ->hxvalueLB5.setText(String.format("%.0f",0.0)));
+			    	//Platform.runLater(() ->hxvalueLB4.setText(String.format("%.0f",0.0)));
+			    	//Platform.runLater(() ->hxvalueLB5.setText(String.format("%.0f",0.0)));
 		    		Platform.runLater(() ->infoLB.setText("Mesure Error"));
 		    	}
 	    	}else{

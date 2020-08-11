@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 import org.jfree.data.xy.XYSeriesCollection;
 
@@ -137,7 +138,7 @@ public class csvSaveLoad {
 			writer = new CSVWriter(new FileWriter(folderPath+"init2.csv"));
 	        writer.writeNext(headStr);  //ヘッダー書き込み
 
-	        String[] subStr = new String[10];
+	        String[] subStr = new String[11];
 
 	        subStr[0] = String.valueOf( settingMenu.ch1RatioValue );
 	        subStr[1] = String.valueOf( settingMenu.ch1MaxErrorValue );
@@ -149,6 +150,7 @@ public class csvSaveLoad {
 	        subStr[7] = String.valueOf( settingMenu.ch2TareValue );
 	        subStr[8] = String.valueOf( settingMenu.CH1SignInversionFlg );
 	        subStr[9] = String.valueOf( settingMenu.CH2SignInversionFlg );
+	        subStr[10] = String.valueOf( settingMenu.movingAverageTime );
 
         	writer.writeNext(subStr);
 	        writer.close();
@@ -200,7 +202,7 @@ public class csvSaveLoad {
 			settingMenu.ch2TareValue = Double.valueOf(subStr[7]);
 			settingMenu.CH1SignInversionFlg = subStr[8].equals("false")?false:true;
 			settingMenu.CH2SignInversionFlg = subStr[9].equals("false")?false:true;
-
+			settingMenu.movingAverageTime = Double.valueOf(subStr[10]);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -212,6 +214,7 @@ public class csvSaveLoad {
 
 	//データーセットを保存する
 	public static boolean saveDataSet(
+			List<Double> ch1TentionRawDataList, List<Double> ch2TentionRawDataList,
 			XYSeriesCollection dataSet,Timestamp startTime,
 			double ch1_max, double ch1_min, double ch1_ave,
 			double ch2_max, double ch2_min, double ch2_ave, long shotCnt) {
@@ -282,7 +285,7 @@ public class csvSaveLoad {
         	//設定データー
 			writer.writeNext(new String[] { "" });
 			writer.writeNext(new String[] { "[SettingData]" });
-        	headStr = new String[8];
+        	headStr = new String[9];
     		headStr[0]="ch1RatioValue";
     		headStr[1]="ch1MaxErrorValue";
     		headStr[2]="ch1MinErrorValue";
@@ -291,9 +294,10 @@ public class csvSaveLoad {
     		headStr[5]="ch2MinErrorValue";
     		headStr[6]="ch1TareValue";
     		headStr[7]="ch2TareValue";
+    		headStr[8]="movingAverageTime";
 	        writer.writeNext(headStr);  //ヘッダー書き込み
 
-	        subStr = new String[8];
+	        subStr = new String[9];
 	        subStr[0] = String.valueOf( settingMenu.ch1RatioValue );
 	        subStr[1] = String.valueOf( settingMenu.ch1MaxErrorValue );
 	        subStr[2] = String.valueOf( settingMenu.ch1MinErrorValue );
@@ -302,6 +306,7 @@ public class csvSaveLoad {
 	        subStr[5] = String.valueOf( settingMenu.ch2MinErrorValue );
 	        subStr[6] = String.valueOf( settingMenu.ch1TareValue );
 	        subStr[7] = String.valueOf( settingMenu.ch2TareValue );
+	        subStr[8] = String.valueOf( settingMenu.movingAverageTime );
         	writer.writeNext(subStr);
 
         	//エラーカウント
@@ -358,14 +363,16 @@ public class csvSaveLoad {
         	//生データー
 			writer.writeNext(new String[] { "" });
 			writer.writeNext(new String[] { "[RawData]" });
-        	headStr = new String[3];
+        	headStr = new String[5];
     		headStr[0]="ElapsedTime(sec)";
     		headStr[1]="CH1 tention(g)";
     		headStr[2]="CH2 tention(g)";
+    		headStr[3]="CH1 RawTention(g)";
+    		headStr[4]="CH2 RawTention(g)";
 	        writer.writeNext(headStr);  //ヘッダー書き込み
 
 	        int count = dataSet.getSeries(0).getItems().size();
-	        subStr = new String[3];
+	        subStr = new String[5];
 	        for(int i=0;i<count;i++) {
 	        	subStr[0] = (String.valueOf(
 	        			((org.jfree.data.xy.XYDataItem)dataSet.getSeries(0).getItems().get(i)).getX()));
@@ -373,6 +380,8 @@ public class csvSaveLoad {
 	        			((org.jfree.data.xy.XYDataItem)dataSet.getSeries(0).getItems().get(i)).getYValue()));
 	        	subStr[2] = (String.valueOf(
 	        			((org.jfree.data.xy.XYDataItem)dataSet.getSeries(1).getItems().get(i)).getYValue()));
+	        	subStr[3] = (String.valueOf(ch1TentionRawDataList.get(i)));
+	        	subStr[4] = (String.valueOf(ch2TentionRawDataList.get(i)));
 	        	writer.writeNext(subStr);
 	        }
 

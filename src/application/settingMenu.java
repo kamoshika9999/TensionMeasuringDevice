@@ -65,6 +65,8 @@ public class settingMenu {
     private CheckBox CH1SignInversion;
     @FXML
     private CheckBox CH2SignInversion;
+    @FXML
+    private TextField movingAverageTimeTX;
 
     //クラス変数
     double tmpTareValueCh1,tmpTareValueCh2;
@@ -86,7 +88,7 @@ public class settingMenu {
     public static boolean demoMode = false;
     public static boolean CH1SignInversionFlg;
     public static boolean CH2SignInversionFlg;
-
+    public static double movingAverageTime;
 
     /**
      * 風袋リセット CH1
@@ -128,6 +130,7 @@ public class settingMenu {
     			System.out.println(e);
     		}
     	//保存処理
+       	try {
     	ch1RatioValue = Double.valueOf( this.ch1Ratio.getText() );
     	ch1MaxErrorValue = Long.valueOf( this.ch1MaxError.getText());
     	ch1MinErrorValue = Long.valueOf( this.ch1MinError.getText());
@@ -138,6 +141,10 @@ public class settingMenu {
     	ch2TareValue = tmpTareValueCh2;
     	CH1SignInversionFlg = CH1SignInversion.isSelected();
     	CH2SignInversionFlg = CH2SignInversion.isSelected();
+    	movingAverageTime = Double.valueOf(this.movingAverageTimeTX.getText());
+       	}catch(Exception e) {
+       		System.out.println("settingmenu  " + e);
+       	}
 
     	if( !csvSaveLoad.settingValueSave() ) {
     		System.out.println("settingSaveError");
@@ -168,6 +175,7 @@ public class settingMenu {
     	Platform.runLater(() ->ch2Ratio.setText( String.valueOf(ch2RatioValue)));
     	Platform.runLater(() ->CH1SignInversion.setSelected(CH1SignInversionFlg));
     	Platform.runLater(() ->CH2SignInversion.setSelected(CH2SignInversionFlg));
+    	Platform.runLater(() ->movingAverageTimeTX.setText(String.valueOf(movingAverageTime)));
 
     	tentionMesure = new Runnable() {
 			@Override

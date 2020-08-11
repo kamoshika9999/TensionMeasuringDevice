@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
@@ -145,6 +147,9 @@ public class MainScreenController {
     XYSeriesCollection tention_dataset;
 
     //測定データー
+    List<Double> movingaverageTimeList = new ArrayList<Double>();
+    List<Double> ch1TentionRawDataList = new ArrayList<Double>();
+    List<Double> ch2TentionRawDataList = new ArrayList<Double>();
     double ch1_ave;
     double ch1_max;
     double ch1_min;
@@ -368,7 +373,9 @@ public class MainScreenController {
     	//約60秒未満は保存しない
     	if(startTime !=null) {//startTimeオブジェクトがnullの時は実行しない
 	    	if( System.currentTimeMillis() - startTime.getTime() > 60*1000 ) {
-				if( !csvSaveLoad.saveDataSet(tention_dataset, startTime,ch1_max,ch1_min,ch1_ave,ch2_max,ch2_min,ch2_ave,shotCnt) ) {
+				if( !csvSaveLoad.saveDataSet(
+						ch1TentionRawDataList,ch2TentionRawDataList,tention_dataset, 
+						startTime,ch1_max,ch1_min,ch1_ave,ch2_max,ch2_min,ch2_ave,shotCnt) ) {
 					System.out.println("データーセット保存異常");
 					Platform.runLater( () ->this.infoLB.setText("データーセット保存異常"));
 				}
@@ -387,6 +394,9 @@ public class MainScreenController {
 		Platform.runLater( () ->tention_dataset.getSeries(0).clear());
 		Platform.runLater( () ->tention_dataset.getSeries(1).clear());
 		Platform.runLater( () ->mesureCntLB.setText("----------"));
+		ch1TentionRawDataList.clear();
+		ch2TentionRawDataList.clear();
+		movingaverageTimeList.clear();
 
 		//機器異常リセット ※eventがnullの時は自動停止時に呼び出されたと判断しアラーム鳴動を止めない
 		//機器異常は常時監視されている8H以内に規定の回数計測エラーが発生した場合、巻きが停止して
@@ -415,7 +425,7 @@ public class MainScreenController {
     		//デバッグコード--------------------
     		if( debugFlg ) {
 		    	try {
-					Thread.sleep(300);
+					Thread.sleep(100);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -439,68 +449,76 @@ public class MainScreenController {
     		long chartTime = System.currentTimeMillis() - startTime.getTime();//経過時間(mSec単位)
 
 	    	if( !mesureStopFlg ) {
-	    		shotCnt++;
-    			//Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("0xffffffff")));
-
 		    	if( result[0][0] != -1 ) {
-
-		    		//10秒間の移動平均
-		    		/*
-		    		boolean endFlg = false;
-		    		int chartDataIndex = shotCnt - 1;
-		    		double tmpTention = 0.0;
-		    		while( !endFlg && chartTime/1000 > 10 ) {
-			    		double tmpTime=
-			    				(double)((org.jfree.data.xy.XYDataItem)tention_dataset.getSeries(0).getItems().
-			    						get(chartDataIndex)).getX();
-			    		tmpTention += (double)((org.jfree.data.xy.XYDataItem)tention_dataset.getSeries(0).getItems().
-	    						get(chartDataIndex)).getY();
-			    		if( tmpTime > chartTime/1000 - 10 ) {
-			    			endFlg = true;
-			    		}else {
+		    		shotCnt++;
+		    		//n秒間の生データの移動平均計算
+		    		//判定も移動平均で行う
+		    		final double movingaverageTime = settingMenu.movingAverageTime;
+		    		boolean movingaverageEnableFlg = false;
+		    		int chartDataIndex = shotCnt - 2;
+		    		double[] movingaverage = new double[2];
+		    		double tmpCnt = 0.0;
+		    		try {
+		    		while( !movingaverageEnableFlg && chartTime/1000.0 > movingaverageTime && chartDataIndex>0) {
+			    		double tmpTime=movingaverageTimeList.get(chartDataIndex);
+			    		movingaverage[0] += ch1TentionRawDataList.get(chartDataIndex);
+			    		movingaverage[1] += ch2TentionRawDataList.get(chartDataIndex);
+			    		tmpCnt++;
+			    		if( tmpTime > chartTime/1000.0 - movingaverageTime && chartDataIndex>0) {
 			    			chartDataIndex--;
+			    		}else {
+			    			movingaverageEnableFlg = true;
 			    		}
 		    		}
-		    		if( endFlg ) {
-		    			tmpTention /= shotCnt -1 - chartDataIndex;
+		    		if( movingaverageEnableFlg ) {
+		    			movingaverage[0] /= tmpCnt;
+		    			movingaverage[1] /= tmpCnt;
+		    		}else {
+		    			movingaverage[0] = result[0][1];
+		    			movingaverage[1] = result[1][1];
 		    		}
-		    		*/
+		    		}catch(Exception e) {
+		    			System.out.println(e);
+		    		}
+		    		//移動平均表示
+		    		Platform.runLater(() ->this.CH1movingaverageLB.setText(String.format("%.0f", movingaverage[0])));
+		    		Platform.runLater(() ->this.CH2movingaverageLB.setText(String.format("%.0f", movingaverage[1])));
 
 		    		int judgmentFlg = 0;//0:合格 1～2:警告 3～:規格外
 		    		//規格判定
-		    		if( result[0][1] >
+		    		if( movingaverage[0] >
 		    			settingMenu.ch1MaxErrorValue - (settingMenu.ch1MaxErrorValue*settingMenu.ch1RatioValue) ) {
 		    			Platform.runLater(() ->infoLB.setText("CH1 MaxWarning"));
 		    			judgmentFlg += 1;
 		    		}
-		    		if( result[0][1] > settingMenu.ch1MaxErrorValue) {
+		    		if( movingaverage[0] > settingMenu.ch1MaxErrorValue) {
 		    			Platform.runLater(() ->infoLB.setText("CH1 MaxOver!!"));
 		    			judgmentFlg += 3;
 		    		}
-		    		if( result[0][1] <
+		    		if( movingaverage[0] <
 	    			settingMenu.ch1MinErrorValue + (settingMenu.ch1MinErrorValue*settingMenu.ch1RatioValue) ) {
 		    			Platform.runLater(() ->infoLB.setText("CH1 MinWarning"));
 		    			judgmentFlg += 1;
 		    		}
-		    		if( result[0][1] < settingMenu.ch1MinErrorValue) {
+		    		if( movingaverage[0] < settingMenu.ch1MinErrorValue) {
 		    			Platform.runLater(() ->infoLB.setText("CH1 MinLower!!"));
 		    			judgmentFlg += 3;
 		    		}
-		    		if( result[1][1] >
+		    		if( movingaverage[1] >
 	    			settingMenu.ch2MaxErrorValue - (settingMenu.ch2MaxErrorValue*settingMenu.ch2RatioValue) ) {
 		    			Platform.runLater(() ->infoLB.setText("CH2 MaxWarning"));
 		    			judgmentFlg += 1;
 		    		}
-		    		if( result[1][1] > settingMenu.ch2MaxErrorValue) {
+		    		if( movingaverage[1] > settingMenu.ch2MaxErrorValue) {
 		    			Platform.runLater(() ->infoLB.setText("CH2 MaxOver!!"));
 		    			judgmentFlg += 3;
 		    		}
-		    		if( result[1][1] <
+		    		if( movingaverage[1] <
 	    			settingMenu.ch2MinErrorValue + (settingMenu.ch2MinErrorValue*settingMenu.ch2RatioValue) ) {
 		    			Platform.runLater(() ->infoLB.setText("CH2 MinWarning"));
 		    			judgmentFlg += 1;
 		    		}
-		    		if( result[1][1] < settingMenu.ch2MinErrorValue) {
+		    		if( movingaverage[1] < settingMenu.ch2MinErrorValue) {
 		    			Platform.runLater(() ->infoLB.setText("CH2 MinLower!!"));
 		    			judgmentFlg += 3;
 		    		}
@@ -531,8 +549,12 @@ public class MainScreenController {
 		    		}
 
 		    		//データーセットは表示の都合でDouble値で格納する
-		    		Platform.runLater( () ->tention_dataset.getSeries(0).add((double)chartTime/1000.0,result[0][1]));
-		    		Platform.runLater( () ->tention_dataset.getSeries(1).add((double)chartTime/1000.0,result[1][1]));
+		    		Platform.runLater( () ->tention_dataset.getSeries(0).add((double)chartTime/1000.0,movingaverage[0]));
+		    		Platform.runLater( () ->tention_dataset.getSeries(1).add((double)chartTime/1000.0,movingaverage[1]));
+		    		movingaverageTimeList.add(chartTime/1000.0);
+		    		ch1TentionRawDataList.add(result[0][1]);//生データを格納
+		    		ch2TentionRawDataList.add(result[1][1]);//生データを格納
+
 		    		//経過時間表示
 		    		Platform.runLater( () ->mesureCntLB.setText( String.format("%d H %d M %d S",
 		    				(int)Math.floor( (double)chartTime/1000.0/3600.0 ),
@@ -545,18 +567,20 @@ public class MainScreenController {
 							setRange( (chartTime/1000)<=60 ? 0 : (chartTime/1000)-60,(chartTime/1000)<1?1:(chartTime/1000) ));
 
 		    		//テンションの最大値、最小値、平均を更新
-		    		if( ch1_max < result[0][1] ) ch1_max = result[0][1];
-		    		if( ch1_min > result[0][1] ) ch1_min = result[0][1];
-		    		if( ch2_max < result[1][1] ) ch2_max = result[1][1];
-		    		if( ch2_min > result[1][1] ) ch2_min = result[1][1];
-		    		ch1_ave +=  result[0][1];
-		    		ch2_ave +=  result[1][1];
+		    		if( movingaverageEnableFlg ) {
+			    		if( ch1_max < movingaverage[0] ) ch1_max = movingaverage[0];
+			    		if( ch1_min > movingaverage[0] ) ch1_min = movingaverage[0];
+			    		if( ch2_max < movingaverage[1] ) ch2_max = movingaverage[1];
+			    		if( ch2_min > movingaverage[1] ) ch2_min = movingaverage[1];
+			    		Platform.runLater(() ->ch1MaxLB.setText(String.format("%.0f",ch1_max)));
+			    		Platform.runLater(() ->ch1MinLB.setText(String.format("%.0f",ch1_min)));
+			    		Platform.runLater(() ->ch2MaxLB.setText(String.format("%.0f",ch2_max)));
+			    		Platform.runLater(() ->ch2MinLB.setText(String.format("%.0f",ch2_min)));
+		    		}
+		    		ch1_ave +=  movingaverage[0];
+		    		ch2_ave +=  movingaverage[1];
 		    		Platform.runLater(() ->ch1AveLB.setText(String.format("%.0f",ch1_ave/shotCnt)));
 		    		Platform.runLater(() ->ch2AveLB.setText(String.format("%.0f",ch2_ave/shotCnt)));
-		    		Platform.runLater(() ->ch1MaxLB.setText(String.format("%.0f",ch1_max)));
-		    		Platform.runLater(() ->ch1MinLB.setText(String.format("%.0f",ch1_min)));
-		    		Platform.runLater(() ->ch2MaxLB.setText(String.format("%.0f",ch2_max)));
-		    		Platform.runLater(() ->ch2MinLB.setText(String.format("%.0f",ch2_min)));
 
 
 		    		final double rangeRatio = 0.4;
@@ -568,8 +592,10 @@ public class MainScreenController {
 		    		}
 		    		final double maxRange_ = maxRange;
 		    		final double minRange_ = minRange;
-		    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getRangeAxis()).
-							setRange(minRange_,maxRange_));
+		    		if(movingaverageEnableFlg) {
+			    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getRangeAxis()).
+								setRange(minRange_,maxRange_));
+		    		}
 		    	}else {
 			    	//Platform.runLater(() ->hxvalueLB1.setText(String.format("%.0f",0.0)));
 			    	//Platform.runLater(() ->hxvalueLB2.setText(String.format("%.0f",0.0)));

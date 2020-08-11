@@ -174,5 +174,15 @@
             <Font name="Arial" size="13.0" />
          </font>
       </CheckBox>
+      <Label layoutX="358.0" layoutY="449.0" text="movingAverageTime">
+         <font>
+            <Font name="Arial" size="14.0" />
+         </font>
+      </Label>
+      <TextField fx:id="movingAverageTimeTX" layoutX="501.0" layoutY="445.0" prefHeight="26.0" prefWidth="95.0" text="3.0">
+         <font>
+            <Font name="Arial" size="14.0" />
+         </font>
+      </TextField>
    </children>
 </AnchorPane>

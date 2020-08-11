@@ -223,21 +223,6 @@ public class csvSaveLoad {
         String StartDate = sdf.format(startTime);
         String EndDate = sdf.format(EndTime);
 
-        //デバッグコード-----------------------------------------------------------------------------------------------
-        if( MainScreenController.debugFlg) {
-	        String fileName = "sample2.wav";
-	        File jarFile = null;
-			try {
-				jarFile = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-			} catch (URISyntaxException e) {
-				e.printStackTrace();
-			}
-	        String inputFilePath = jarFile.getParent() + File.separator + fileName;
-	        File tmpFile = new File(inputFilePath);
-	        System.out.println(inputFilePath);
-        }
-        //-------------------------------------------------------------------------------------------------------------
-
         CSVWriter writer;
 		try {
 	        //実行するjarのフォルダを得る-----------------------------------------------------------------------------

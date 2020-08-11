@@ -19,12 +19,15 @@ import org.jfree.chart.ChartColor;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.LegendTitle;
+import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
@@ -209,11 +212,11 @@ public class MainScreenController {
     	if( debugFlg ) {
 	        Random rand = new Random();
 	        int num = rand.nextInt(30)-15;
-	    	result[0][1] = (98 + num  - settingMenu.ch1TareValue)* (settingMenu.CH1SignInversionFlg?-1:1);
-	    	result[0][2] = 98 + num;
+	    	result[0][1] = (61 + num  - settingMenu.ch1TareValue)* (settingMenu.CH1SignInversionFlg?-1:1);
+	    	result[0][2] = 61 + num;
 	    	num = rand.nextInt(30)-15;
-	    	result[1][1] = (120 + num - settingMenu.ch2TareValue)* (settingMenu.CH2SignInversionFlg?-1:1);
-	    	result[1][2] = 120 + num;
+	    	result[1][1] = (72 + num - settingMenu.ch2TareValue)* (settingMenu.CH2SignInversionFlg?-1:1);
+	    	result[1][2] = 72 + num;
 	    	double resolution = 3204;
 	    	result[0][0] = result[0][2] * resolution;
 	    	result[1][0] = result[1][2] * resolution;
@@ -370,11 +373,12 @@ public class MainScreenController {
     	if( resetExFlg ) return;
     	resetExFlg = true;
 
+    	try {
     	//約60秒未満は保存しない
     	if(startTime !=null) {//startTimeオブジェクトがnullの時は実行しない
 	    	if( System.currentTimeMillis() - startTime.getTime() > 60*1000 ) {
 				if( !csvSaveLoad.saveDataSet(
-						ch1TentionRawDataList,ch2TentionRawDataList,tention_dataset, 
+						ch1TentionRawDataList,ch2TentionRawDataList,tention_dataset,
 						startTime,ch1_max,ch1_min,ch1_ave,ch2_max,ch2_min,ch2_ave,shotCnt) ) {
 					System.out.println("データーセット保存異常");
 					Platform.runLater( () ->this.infoLB.setText("データーセット保存異常"));
@@ -413,6 +417,9 @@ public class MainScreenController {
 		}
 
 		startTime = new Timestamp(System.currentTimeMillis());
+    	}catch(Exception e) {
+    		System.out.println(e);
+    	}
 
     	resetExFlg = false;
     }
@@ -421,6 +428,8 @@ public class MainScreenController {
      * 計測用メインメソッド
      */
     private void mesure() {
+    		final int disableTime = 60;//判定、最大値、最小値の更新無効タイマ
+
     		if(mesureFlg) return;//別スレッドから同時複数呼び出しを排他する
     		//デバッグコード--------------------
     		if( debugFlg ) {
@@ -532,9 +541,9 @@ public class MainScreenController {
 		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ffff00ff")));
 		    			Platform.runLater(() ->judgmentLB.setText("!!!"));
 		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
-		    	    	//約60秒未満は鳴らさない
+		    	    	//約disableTime秒未満は鳴らさない
 		    			if( !mp_error3.isPlaying() && !mesureErrFlg && mesureTreshFlg &&
-		    					( System.currentTimeMillis() - startTime.getTime() > 60*1000 )) {
+		    					( System.currentTimeMillis() - startTime.getTime() > disableTime*1000 )) {
 			    			mp_error3.play();//テンション警告を鳴らす
 		    			}
 
@@ -543,7 +552,7 @@ public class MainScreenController {
 		    			Platform.runLater(() ->judgmentLB.setText("NG"));
 		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
 		    			//計測開始から一定時間経過後かつ10gを超えている場合のみエラーフラグをたてる
-		    			if( System.currentTimeMillis()-startTime.getTime()>60*1000  && mesureTreshFlg) {
+		    			if( System.currentTimeMillis()-startTime.getTime()>disableTime*1000  && mesureTreshFlg) {
 		    				tentionErrFlg = true;
 		    			}
 		    		}
@@ -564,10 +573,10 @@ public class MainScreenController {
 
 		    		//データーセットはdouble値 チャート表示は整数とする為、変換表示させる
 		    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getDomainAxis()).
-							setRange( (chartTime/1000)<=60 ? 0 : (chartTime/1000)-60,(chartTime/1000)<1?1:(chartTime/1000) ));
+							setRange( (chartTime/1000)<=120 ? 0 : (chartTime/1000)-120,(chartTime/1000)<1?1:(chartTime/1000) ));
 
 		    		//テンションの最大値、最小値、平均を更新
-		    		if( movingaverageEnableFlg ) {
+		    		if( movingaverageEnableFlg && chartTime/1000 > disableTime) {
 			    		if( ch1_max < movingaverage[0] ) ch1_max = movingaverage[0];
 			    		if( ch1_min > movingaverage[0] ) ch1_min = movingaverage[0];
 			    		if( ch2_max < movingaverage[1] ) ch2_max = movingaverage[1];
@@ -583,7 +592,7 @@ public class MainScreenController {
 		    		Platform.runLater(() ->ch2AveLB.setText(String.format("%.0f",ch2_ave/shotCnt)));
 
 
-		    		final double rangeRatio = 0.4;
+		    		final double rangeRatio = 0.15;
 		    		double minRange = ch1_min<ch2_min?ch1_min-Math.abs(ch1_min*rangeRatio):ch2_min-Math.abs(ch2_min*rangeRatio);
 		    		double maxRange = ch1_max>ch2_max?ch1_max+Math.abs(ch1_max*rangeRatio):ch2_max+Math.abs(ch2_max*rangeRatio);
 		    		if( maxRange < minRange) {
@@ -592,16 +601,11 @@ public class MainScreenController {
 		    		}
 		    		final double maxRange_ = maxRange;
 		    		final double minRange_ = minRange;
-		    		if(movingaverageEnableFlg) {
+		    		if(movingaverageEnableFlg && chartTime/1000 > disableTime) {
 			    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getRangeAxis()).
 								setRange(minRange_,maxRange_));
 		    		}
 		    	}else {
-			    	//Platform.runLater(() ->hxvalueLB1.setText(String.format("%.0f",0.0)));
-			    	//Platform.runLater(() ->hxvalueLB2.setText(String.format("%.0f",0.0)));
-
-			    	//Platform.runLater(() ->hxvalueLB4.setText(String.format("%.0f",0.0)));
-			    	//Platform.runLater(() ->hxvalueLB5.setText(String.format("%.0f",0.0)));
 		    		Platform.runLater(() ->infoLB.setText("Mesure Error"));
 		    	}
 	    	}else{
@@ -785,7 +789,7 @@ public class MainScreenController {
     private JFreeChart chartFact() {
     	XYSeriesCollection tentionDataSet;
 		tentionDataSet = getChartData();
-		JFreeChart chart = createInitChart("TentionRealTimeMonitor","(g)","ElapsedTime(sec)",tentionDataSet ,0.0,300);
+		JFreeChart chart = createInitChart("TentionRealTimeMonitor","(g)","ElapsedTime(sec)",tentionDataSet ,30,100);
 		ChartViewer chV = new ChartViewer(chart);
         chV.addChartMouseListener( new ChartMouseListenerFX() {
 				@Override
@@ -816,15 +820,16 @@ public class MainScreenController {
     	JFreeChart chart = ChartFactory.createXYLineChart(title,categoryAxisLabel,valueAxisLabel,
                 dataset,//データーセット
                 PlotOrientation.VERTICAL,//値の軸方向
-                false,//凡例
+                true,//凡例
                 false,//tooltips
                 false);//urls
         // 背景色を設定
     	chart.setBackgroundPaint(ChartColor.WHITE);
 
         // 凡例の設定
-        //LegendTitle lt = chart.getLegend();
-        //lt.setFrame(new BlockBorder(1d, 2d, 3d, 4d, ChartColor.WHITE));
+        LegendTitle lt = chart.getLegend();
+        lt.setFrame(new BlockBorder(1d, 2d, 3d, 4d, ChartColor.WHITE));
+        lt.setPosition(RectangleEdge.LEFT);
 
         XYPlot plot = (XYPlot) chart.getPlot();
         // 背景色
@@ -856,10 +861,12 @@ public class MainScreenController {
         //renderer.setDefaultShapesVisible(true);
         //renderer.setDefaultShapesFilled(true);
         //プロットのサイズ
-        Stroke stroke = new BasicStroke(1.0f);
+        Stroke stroke = new BasicStroke(2.0f);
         renderer.setSeriesStroke(0, stroke);
+        renderer.setSeriesStroke(1, stroke);
 		//色
         renderer.setSeriesPaint(0, ChartColor.BLUE);
+        renderer.setSeriesPaint(1, ChartColor.RED);
 
         /*
         // プロットに値を付ける

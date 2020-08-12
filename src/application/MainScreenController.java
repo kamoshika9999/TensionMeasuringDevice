@@ -213,10 +213,10 @@ public class MainScreenController {
     	if( debugFlg ) {
 	        Random rand = new Random();
 	        int num = rand.nextInt(30)-15;
-	    	result[0][1] = (61 + num  - settingMenu.ch1TareValue)* (settingMenu.CH1SignInversionFlg?-1:1);
+	    	result[0][1] = (61 + num  - settingMenu.tareValue[0])* (settingMenu.signInversionFlg[0]?-1:1);
 	    	result[0][2] = 61 + num;
 	    	num = rand.nextInt(30)-15;
-	    	result[1][1] = (72 + num - settingMenu.ch2TareValue)* (settingMenu.CH2SignInversionFlg?-1:1);
+	    	result[1][1] = (72 + num - settingMenu.tareValue[1])* (settingMenu.signInversionFlg[1]?-1:1);
 	    	result[1][2] = 72 + num;
 	    	double resolution = 3204;
 	    	result[0][0] = result[0][2] * resolution;
@@ -279,17 +279,13 @@ public class MainScreenController {
     			}
     		}
     		//測定レンジが規定値以上の場合resultは-1が入ったまま返される
-    		if( flg[0] && enableCnt[0] > 0) {
-				result[0][0] = aveValue[0] / enableCnt[0];
-				result[0][1] = ((aveWeight[0] / enableCnt[0]) - settingMenu.ch1TareValue)
-																* (settingMenu.CH1SignInversionFlg?-1:1);
-				result[0][2] = aveWeight[0] / enableCnt[0];
-    		}
-    		if( flg[1] && enableCnt[1] > 0) {
-				result[1][0] = aveValue[1] / enableCnt[1];
-				result[1][1] = ((aveWeight[1] / enableCnt[1]) - settingMenu.ch2TareValue)
-																* (settingMenu.CH2SignInversionFlg?-1:1);
-				result[1][2] = aveWeight[1] / enableCnt[1];
+    		for(int i=0;i<2;i++) {
+	    		if( flg[i] && enableCnt[i] > 0) {
+					result[i][0] = aveValue[i] / enableCnt[i];
+					result[i][1] = ((aveWeight[i] / enableCnt[i]) - settingMenu.tareValue[i])
+																	* (settingMenu.signInversionFlg[i]?-1:1);
+					result[i][2] = aveWeight[i] / enableCnt[i];
+	    		}
     		}
     	}catch(Exception e) {
     		System.out.println(e);
@@ -487,6 +483,7 @@ public class MainScreenController {
 		    			movingaverage[0] /= tmpCnt;
 		    			movingaverage[1] /= tmpCnt;
 		    		}else {
+		    			//経過時間が移動平均計算タイマ(movingaverageTime)以下であれば生データを格納
 		    			movingaverage[0] = result[0][1];
 		    			movingaverage[1] = result[1][1];
 		    		}
@@ -499,42 +496,27 @@ public class MainScreenController {
 
 		    		int judgmentFlg = 0;//0:合格 1～2:警告 3～:規格外
 		    		//規格判定
-		    		if( movingaverage[0] >
-		    			settingMenu.ch1MaxErrorValue - (settingMenu.ch1MaxErrorValue*settingMenu.ch1RatioValue) ) {
-		    			Platform.runLater(() ->infoLB.setText("CH1 MaxWarning"));
-		    			judgmentFlg += 1;
+		    		for(int i=0;i<2;i++) {
+			    		if( movingaverage[i] >
+			    			settingMenu.maxErrorValue[i] - (settingMenu.maxErrorValue[i]*settingMenu.ratioValue[i]) ) {
+			    			Platform.runLater(() ->infoLB.setText("MaxWarning"));
+			    			judgmentFlg += 1;
+			    		}
+			    		if( movingaverage[i] > settingMenu.maxErrorValue[i]) {
+			    			Platform.runLater(() ->infoLB.setText("MaxOver!!"));
+			    			judgmentFlg += 3;
+			    		}
+			    		if( movingaverage[i] <
+		    			settingMenu.minErrorValue[i] + (settingMenu.minErrorValue[i]*settingMenu.ratioValue[i]) ) {
+			    			Platform.runLater(() ->infoLB.setText("MinWarning"));
+			    			judgmentFlg += 1;
+			    		}
+			    		if( movingaverage[i] < settingMenu.minErrorValue[i]) {
+			    			Platform.runLater(() ->infoLB.setText("MinLower!!"));
+			    			judgmentFlg += 3;
+			    		}
 		    		}
-		    		if( movingaverage[0] > settingMenu.ch1MaxErrorValue) {
-		    			Platform.runLater(() ->infoLB.setText("CH1 MaxOver!!"));
-		    			judgmentFlg += 3;
-		    		}
-		    		if( movingaverage[0] <
-	    			settingMenu.ch1MinErrorValue + (settingMenu.ch1MinErrorValue*settingMenu.ch1RatioValue) ) {
-		    			Platform.runLater(() ->infoLB.setText("CH1 MinWarning"));
-		    			judgmentFlg += 1;
-		    		}
-		    		if( movingaverage[0] < settingMenu.ch1MinErrorValue) {
-		    			Platform.runLater(() ->infoLB.setText("CH1 MinLower!!"));
-		    			judgmentFlg += 3;
-		    		}
-		    		if( movingaverage[1] >
-	    			settingMenu.ch2MaxErrorValue - (settingMenu.ch2MaxErrorValue*settingMenu.ch2RatioValue) ) {
-		    			Platform.runLater(() ->infoLB.setText("CH2 MaxWarning"));
-		    			judgmentFlg += 1;
-		    		}
-		    		if( movingaverage[1] > settingMenu.ch2MaxErrorValue) {
-		    			Platform.runLater(() ->infoLB.setText("CH2 MaxOver!!"));
-		    			judgmentFlg += 3;
-		    		}
-		    		if( movingaverage[1] <
-	    			settingMenu.ch2MinErrorValue + (settingMenu.ch2MinErrorValue*settingMenu.ch2RatioValue) ) {
-		    			Platform.runLater(() ->infoLB.setText("CH2 MinWarning"));
-		    			judgmentFlg += 1;
-		    		}
-		    		if( movingaverage[1] < settingMenu.ch2MinErrorValue) {
-		    			Platform.runLater(() ->infoLB.setText("CH2 MinLower!!"));
-		    			judgmentFlg += 3;
-		    		}
+
 		    		//判定表示
 		    		if( judgmentFlg == 0 ) {
 			    		Platform.runLater(() ->infoLB.setText("Measuring"));
@@ -577,8 +559,8 @@ public class MainScreenController {
 
 		    		//データーセットはdouble値 チャート表示は整数とする為、変換表示させる
 		    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getDomainAxis()).
-							setRange( (chartTime/1000)<=120 ? 0 :
-														(chartTime/1000)-120,(chartTime/1000)<1?1:(chartTime/1000) ));
+							setRange( (chartTime/1000)<=settingMenu.graphXaxisTime ? 0 :
+								(chartTime/1000)-settingMenu.graphXaxisTime,(chartTime/1000)<1?1:(chartTime/1000) ));
 
 		    		//テンションの最大値、最小値、平均を更新
 		    		if( movingaverageEnableFlg && chartTime/1000 > disableTime) {

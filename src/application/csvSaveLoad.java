@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -21,15 +20,6 @@ public class csvSaveLoad {
 	 */
 	public static boolean calibDataCsvWrite(
 					long[] emptyValue_,long[] calibValue_,double[] weight_,double[] resolution_) {
-        //実行するjarのフォルダを得る-----------------------------------------------------------------------------
-		File jarFile = null;
-		try {
-			jarFile = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
-		String folderPath = jarFile.getParent() + File.separator;
-		//--------------------------------------------------------------------------------------------------------
 		String[] headStr = new String[8];
 		headStr[0]="CH1 EmptyValue";
 		headStr[1]="CH1 CalibValue";
@@ -44,7 +34,7 @@ public class csvSaveLoad {
 		CSVWriter writer;
 
 		try {
-			writer = new CSVWriter(new FileWriter(folderPath+"init.csv"));
+			writer = new CSVWriter(new FileWriter( MyUtil.getJarFolder() + "init.csv"));
 	        writer.writeNext(headStr);  //ヘッダー書き込み
 
         	String[] subStr= new String[ 4*2 ];
@@ -65,17 +55,8 @@ public class csvSaveLoad {
    }
 
 	public static boolean calibDataLoad(long[] emptyValue_,long[] calibValue_,double[] weight_,double[] resolution_) {
-        //実行するjarのフォルダを得る-----------------------------------------------------------------------------
-		File jarFile = null;
 		try {
-			jarFile = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
-		String folderPath = jarFile.getParent() + File.separator;
-		//--------------------------------------------------------------------------------------------------------
-		try {
-			FileReader fr = new FileReader(folderPath+"init.csv");
+			FileReader fr = new FileReader( MyUtil.getJarFolder() + "init.csv");
 			CSVReader reader=new CSVReader( fr );
 
 			String[] headStr = reader.readNext();//ヘッダー読み込み
@@ -100,57 +81,57 @@ public class csvSaveLoad {
 	}
 
 	public static boolean settingValueSave() {
-        //実行するjarのフォルダを得る-----------------------------------------------------------------------------
-		File jarFile = null;
-		try {
-			jarFile = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
-		String folderPath = jarFile.getParent() + File.separator;
-		//--------------------------------------------------------------------------------------------------------
 		/*
-	    public static double ch1RatioValue;
-	    public static long ch1MaxErrorValue;
-	    public static long ch1MinErrorValue;
-	    public static double ch2RatioValue;
-	    public static long ch2MaxErrorValue;
-	    public static long ch2MinErrorValue;
-        public static boolean CH1SignInversionFlg;
-    	public static boolean CH2SignInversionFlg;
-
-	    */
-
-		String[] headStr = new String[10];
+	    //設定値 CSVファイルに保存される値---------------------------------------------------------------------------------
+	    public static double[] ratioValue = new double[2];//警告の比率 例)ch1MaxErroValue-(ch1MaxErroValue*ch1RatioValue)=上限警告
+	    public static long[] maxErrorValue = new long[2];//テンションの上限閾値
+	    public static long[] minErrorValue = new long[2];//テンションの加減閾値
+	    public static double[] tareValue = new double[2];//風袋の値
+	    public static boolean[] signInversionFlg = new boolean[2];//テンションの符号
+	    public static boolean demoMode = false;
+	    public static double movingAverageTime;
+        public static double graphXaxisTime;
+	    //-----------------------------------------------------------------------------------------------------------------
+		*/
+		String[] headStr = new String[12];
 		headStr[0]="ch1RatioValue";
 		headStr[1]="ch1MaxErrorValue";
 		headStr[2]="ch1MinErrorValue";
+
 		headStr[3]="ch2RatioValue";
 		headStr[4]="ch2MaxErrorValue";
 		headStr[5]="ch2MinErrorValue";
+
 		headStr[6]="ch1TareValue";
 		headStr[7]="ch2TareValue";
 		headStr[8]="CH1SignInversionFlg";
 		headStr[9]="CH2SignInversionFlg";
 
+		headStr[10]="movingAverageTime";
+		headStr[11]="graphXaxisTime";
+
 		CSVWriter writer;
 		try {
-			writer = new CSVWriter(new FileWriter(folderPath+"init2.csv"));
+			writer = new CSVWriter(new FileWriter( MyUtil.getJarFolder() + "init2.csv"));
 	        writer.writeNext(headStr);  //ヘッダー書き込み
 
-	        String[] subStr = new String[11];
+	        String[] subStr = new String[12];
 
-	        subStr[0] = String.valueOf( settingMenu.ch1RatioValue );
-	        subStr[1] = String.valueOf( settingMenu.ch1MaxErrorValue );
-	        subStr[2] = String.valueOf( settingMenu.ch1MinErrorValue );
-	        subStr[3] = String.valueOf( settingMenu.ch2RatioValue );
-	        subStr[4] = String.valueOf( settingMenu.ch2MaxErrorValue );
-	        subStr[5] = String.valueOf( settingMenu.ch2MinErrorValue );
-	        subStr[6] = String.valueOf( settingMenu.ch1TareValue );
-	        subStr[7] = String.valueOf( settingMenu.ch2TareValue );
-	        subStr[8] = String.valueOf( settingMenu.CH1SignInversionFlg );
-	        subStr[9] = String.valueOf( settingMenu.CH2SignInversionFlg );
+	        subStr[0] = String.valueOf( settingMenu.ratioValue[0] );
+	        subStr[1] = String.valueOf( settingMenu.maxErrorValue[0] );
+	        subStr[2] = String.valueOf( settingMenu.minErrorValue[0] );
+
+	        subStr[3] = String.valueOf( settingMenu.ratioValue[1] );
+	        subStr[4] = String.valueOf( settingMenu.maxErrorValue[1] );
+	        subStr[5] = String.valueOf( settingMenu.minErrorValue[1] );
+
+	        subStr[6] = String.valueOf( settingMenu.tareValue[0] );
+	        subStr[7] = String.valueOf( settingMenu.tareValue[1] );
+	        subStr[8] = String.valueOf( settingMenu.signInversionFlg[0] );
+	        subStr[9] = String.valueOf( settingMenu.signInversionFlg[1] );
+
 	        subStr[10] = String.valueOf( settingMenu.movingAverageTime );
+	        subStr[11] = String.valueOf( settingMenu.graphXaxisTime );
 
         	writer.writeNext(subStr);
 	        writer.close();
@@ -163,46 +144,41 @@ public class csvSaveLoad {
 	}
 
 	public static boolean settingValueLoad() {
-        //実行するjarのフォルダを得る-----------------------------------------------------------------------------
-		File jarFile = null;
-		try {
-			jarFile = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
-		String folderPath = jarFile.getParent() + File.separator;
-		//--------------------------------------------------------------------------------------------------------
 		/*
-	    public static double ch1RatioValue;
-	    public static long ch1MaxErrorValue;
-	    public static long ch1MinErrorValue;
-	    public static double ch2RatioValue;
-	    public static long ch2MaxErrorValue;
-	    public static long ch2MinErrorValue;
-	    public static double ch1TareValue;
-	    public static double ch2TareValue;
-        public static boolean CH1SignInversionFlg;
-    	public static boolean CH2SignInversionFlg;
-	    */
-		try {
-			FileReader fr = new FileReader(folderPath+"init2.csv");
-			CSVReader reader=new CSVReader( fr );
+	    //設定値 CSVファイルに保存される値---------------------------------------------------------------------------------
+	    public static double[] ratioValue = new double[2];//警告の比率 例)ch1MaxErroValue-(ch1MaxErroValue*ch1RatioValue)=上限警告
+	    public static long[] maxErrorValue = new long[2];//テンションの上限閾値
+	    public static long[] minErrorValue = new long[2];//テンションの加減閾値
+	    public static double[] tareValue = new double[2];//風袋の値
+	    public static boolean[] signInversionFlg = new boolean[2];//テンションの符号
+	    public static boolean demoMode = false;
+	    public static double movingAverageTime;
+    	public static double graphXaxisTime;
+	    //-----------------------------------------------------------------------------------------------------------------
+		*/
 
-			String[] headStr = reader.readNext();//ヘッダー読み込み
+		try {
+			FileReader fr = new FileReader( MyUtil.getJarFolder() + "init2.csv");
+			CSVReader reader=new CSVReader( fr );
+			reader.readNext();//ヘッダー読み込み
 			String[] subStr = reader.readNext();//キャリブレーションデータ読み込み
 			reader.close();
 
-			settingMenu.ch1RatioValue = Double.valueOf(subStr[0]);
-			settingMenu.ch1MaxErrorValue = Long.valueOf(subStr[1]);
-			settingMenu.ch1MinErrorValue = Long.valueOf(subStr[2]);
-			settingMenu.ch2RatioValue = Double.valueOf(subStr[3]);
-			settingMenu.ch2MaxErrorValue = Long.valueOf(subStr[4]);
-			settingMenu.ch2MinErrorValue = Long.valueOf(subStr[5]);
-			settingMenu.ch1TareValue = Double.valueOf(subStr[6]);
-			settingMenu.ch2TareValue = Double.valueOf(subStr[7]);
-			settingMenu.CH1SignInversionFlg = subStr[8].equals("false")?false:true;
-			settingMenu.CH2SignInversionFlg = subStr[9].equals("false")?false:true;
+			settingMenu.ratioValue[0] = Double.valueOf(subStr[0]);
+			settingMenu.maxErrorValue[0] = Long.valueOf(subStr[1]);
+			settingMenu.minErrorValue[0] = Long.valueOf(subStr[2]);
+
+			settingMenu.ratioValue[1] = Double.valueOf(subStr[3]);
+			settingMenu.maxErrorValue[1] = Long.valueOf(subStr[4]);
+			settingMenu.minErrorValue[1] = Long.valueOf(subStr[5]);
+
+			settingMenu.tareValue[0] = Double.valueOf(subStr[6]);
+			settingMenu.tareValue[1] = Double.valueOf(subStr[7]);
+			settingMenu.signInversionFlg[0] = subStr[8].equals("false")?false:true;
+			settingMenu.signInversionFlg[1] = subStr[9].equals("false")?false:true;
+
 			settingMenu.movingAverageTime = Double.valueOf(subStr[10]);
+			settingMenu.graphXaxisTime = Double.valueOf(subStr[11]);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -225,23 +201,13 @@ public class csvSaveLoad {
 
         CSVWriter writer;
 		try {
-	        //実行するjarのフォルダを得る-----------------------------------------------------------------------------
-			File jarFile = null;
-			try {
-				jarFile = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-			} catch (URISyntaxException e) {
-				e.printStackTrace();
-			}
-			String folderPath = jarFile.getParent() + File.separator;
-			//--------------------------------------------------------------------------------------------------------
-
-			File folder = new File(folderPath + "tentionlog");
+			File folder = new File( MyUtil.getJarFolder() + "tentionlog");
 	    	if( !folder.exists()) {
 	    		if( !folder.mkdir() ) {
 	    			System.out.println("tentionlogフォルダ作成失敗");
 	    		}
 	    	}
-	    	writer = new CSVWriter(new FileWriter(folderPath+"tentionlog/"+StartDate + "---" + EndDate + ".csv"));
+	    	writer = new CSVWriter(new FileWriter( MyUtil.getJarFolder() + "tentionlog/"+StartDate + "---" + EndDate + ".csv"));
 
 			//キャリブレーションデーター
 			writer.writeNext(new String[] { "[CalibrationData]" });
@@ -283,14 +249,14 @@ public class csvSaveLoad {
 	        writer.writeNext(headStr);  //ヘッダー書き込み
 
 	        subStr = new String[9];
-	        subStr[0] = String.valueOf( settingMenu.ch1RatioValue );
-	        subStr[1] = String.valueOf( settingMenu.ch1MaxErrorValue );
-	        subStr[2] = String.valueOf( settingMenu.ch1MinErrorValue );
-	        subStr[3] = String.valueOf( settingMenu.ch2RatioValue );
-	        subStr[4] = String.valueOf( settingMenu.ch2MaxErrorValue );
-	        subStr[5] = String.valueOf( settingMenu.ch2MinErrorValue );
-	        subStr[6] = String.valueOf( settingMenu.ch1TareValue );
-	        subStr[7] = String.valueOf( settingMenu.ch2TareValue );
+	        subStr[0] = String.valueOf( settingMenu.ratioValue[0] );
+	        subStr[1] = String.valueOf( settingMenu.maxErrorValue[0] );
+	        subStr[2] = String.valueOf( settingMenu.minErrorValue[0] );
+	        subStr[3] = String.valueOf( settingMenu.ratioValue[1] );
+	        subStr[4] = String.valueOf( settingMenu.maxErrorValue[1] );
+	        subStr[5] = String.valueOf( settingMenu.minErrorValue[1] );
+	        subStr[6] = String.valueOf( settingMenu.tareValue[0] );
+	        subStr[7] = String.valueOf( settingMenu.tareValue[1] );
 	        subStr[8] = String.valueOf( settingMenu.movingAverageTime );
         	writer.writeNext(subStr);
 
@@ -378,5 +344,4 @@ public class csvSaveLoad {
 
 		return true;
 	}
-
 }

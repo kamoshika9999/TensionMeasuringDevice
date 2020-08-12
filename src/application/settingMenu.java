@@ -60,6 +60,8 @@ public class settingMenu {
     @FXML
     private Label ch2RawValueLB;
     @FXML
+    private Label infoLB;
+    @FXML
     private CheckBox demoChk;
     @FXML
     private CheckBox CH1SignInversion;
@@ -67,28 +69,27 @@ public class settingMenu {
     private CheckBox CH2SignInversion;
     @FXML
     private TextField movingAverageTimeTX;
+    @FXML
+    private TextField graphXaxisTimeTX;
 
-    //クラス変数
-    double tmpTareValueCh1,tmpTareValueCh2;
 
 	//スレッドオブジェクト
-	ScheduledExecutorService tr = Executors.newSingleThreadScheduledExecutor();
+	ScheduledExecutorService tr;
 	Runnable tentionMesure;
-	double[][] result = new double[2][2];
 
-    //設定値
-    public static double ch1RatioValue;//警告の比率 例)ch1MaxErroValue-(ch1MaxErroValue*ch1RatioValue)=上限警告
-    public static long ch1MaxErrorValue;
-    public static long ch1MinErrorValue;
-    public static double ch2RatioValue;
-    public static long ch2MaxErrorValue;
-    public static long ch2MinErrorValue;
-    public static double ch1TareValue;
-    public static double ch2TareValue;
+    //設定値 CSVファイルに保存される値---------------------------------------------------------------------------------
+    public static double[] ratioValue = new double[2];//警告の比率 例)ch1MaxErroValue-(ch1MaxErroValue*ch1RatioValue)=上限警告
+    public static long[] maxErrorValue = new long[2];//テンションの上限閾値
+    public static long[] minErrorValue = new long[2];//テンションの加減閾値
+    public static double[] tareValue = new double[2];//風袋の値
+    public static boolean[] signInversionFlg = new boolean[2];//テンションの符号
     public static boolean demoMode = false;
-    public static boolean CH1SignInversionFlg;
-    public static boolean CH2SignInversionFlg;
     public static double movingAverageTime;
+    public static double graphXaxisTime;
+    //-----------------------------------------------------------------------------------------------------------------
+	double[][] result = new double[2][2];//計測値
+    double[] tmpTareValue = new double[2];//風袋の確定前の値を一時保持用 SAVE実行時にtareValueに転送される
+    boolean savingFlg = false;
 
     /**
      * 風袋リセット CH1
@@ -96,7 +97,7 @@ public class settingMenu {
      */
     @FXML
     void onCh1BT(ActionEvent event) {
-    	tmpTareValueCh1=result[0][2];
+    	tmpTareValue[0]=result[0][2];
     }
 
     /**
@@ -105,9 +106,13 @@ public class settingMenu {
      */
     @FXML
     void onCh2BT(ActionEvent event) {
-    	tmpTareValueCh2=result[1][2];
+    	tmpTareValue[1]=result[1][2];
     }
 
+    /**
+     * キャリブレーション値キャンセル
+     * @param event
+     */
     @FXML
     void onCalibCancelBT(ActionEvent event) {
        	try {
@@ -121,9 +126,16 @@ public class settingMenu {
 		window.hide();
     }
 
+    /**
+     * キャリブレーション値確定し保存
+     * @param event
+     */
     @FXML
     void onCalibSaveBT(ActionEvent event) {
-       	try {
+    	if( savingFlg ) return;
+    	savingFlg = true;
+
+    	try {
     			tr.shutdown();
     			tr.awaitTermination(33, TimeUnit.MICROSECONDS);
     		} catch(Exception e) {
@@ -131,23 +143,35 @@ public class settingMenu {
     		}
     	//保存処理
        	try {
-    	ch1RatioValue = Double.valueOf( this.ch1Ratio.getText() );
-    	ch1MaxErrorValue = Long.valueOf( this.ch1MaxError.getText());
-    	ch1MinErrorValue = Long.valueOf( this.ch1MinError.getText());
-    	ch2RatioValue = Double.valueOf( this.ch2Ratio.getText() );
-    	ch2MaxErrorValue = Long.valueOf( this.ch2MaxError.getText());
-    	ch2MinErrorValue = Long.valueOf( this.ch2MinError.getText());
-    	ch1TareValue = tmpTareValueCh1;
-    	ch2TareValue = tmpTareValueCh2;
-    	CH1SignInversionFlg = CH1SignInversion.isSelected();
-    	CH2SignInversionFlg = CH2SignInversion.isSelected();
-    	movingAverageTime = Double.valueOf(this.movingAverageTimeTX.getText());
+			ratioValue[0] = Double.valueOf( ch1Ratio.getText() );
+			maxErrorValue[0] = Long.valueOf( ch1MaxError.getText());
+			minErrorValue[0] = Long.valueOf( ch1MinError.getText());
+			tareValue[0] = tmpTareValue[0];
+			signInversionFlg[0] = CH1SignInversion.isSelected();
+
+			ratioValue[1] = Double.valueOf( ch2Ratio.getText() );
+			maxErrorValue[1] = Long.valueOf( ch2MaxError.getText());
+			minErrorValue[1] = Long.valueOf( ch2MinError.getText());
+			tareValue[1] = tmpTareValue[1];
+			signInversionFlg[1] = CH2SignInversion.isSelected();
+
+			movingAverageTime = Double.valueOf(movingAverageTimeTX.getText());
+			graphXaxisTime = Double.valueOf(graphXaxisTimeTX.getText());
        	}catch(Exception e) {
-       		System.out.println("settingmenu  " + e);
+       		//テキストの値が不正の場合
+       		Platform.runLater(() ->infoLB.setText("入力された値が不正です"));
+       		tr = Executors.newSingleThreadScheduledExecutor();
+       		tr.scheduleAtFixedRate(tentionMesure, 0, 100, TimeUnit.MILLISECONDS);
+       		savingFlg =false;
+       		return;
        	}
 
     	if( !csvSaveLoad.settingValueSave() ) {
-    		System.out.println("settingSaveError");
+       		Platform.runLater(() ->infoLB.setText("保存に失敗しました"));
+       		tr = Executors.newSingleThreadScheduledExecutor();
+       		tr.scheduleAtFixedRate(tentionMesure, 0, 100, TimeUnit.MILLISECONDS);
+       		savingFlg =false;
+      		return;
     	}
 
     	if( demoChk.isSelected() ) {
@@ -156,27 +180,34 @@ public class settingMenu {
     		demoMode = false;
     	}
 
-
 		Scene scene = ((Node) event.getSource()).getScene();
 		Window window = scene.getWindow();
 		window.hide();
     }
 
+    /**
+     * 初期化
+     */
     @FXML
     void initialize() {
-    	tmpTareValueCh1 = ch1TareValue;
-    	tmpTareValueCh2 = ch2TareValue;
+    	//風袋の設定値を一時保存用変数にコピーする
+    	tmpTareValue[0] = tareValue[0];
+    	tmpTareValue[1] = tareValue[1];
 
-    	Platform.runLater(() ->ch1MaxError.setText( String.valueOf(ch1MaxErrorValue)));
-    	Platform.runLater(() ->ch1MinError.setText( String.valueOf(ch1MinErrorValue)));
-    	Platform.runLater(() ->ch1Ratio.setText( String.valueOf(ch1RatioValue)));
-    	Platform.runLater(() ->ch2MaxError.setText( String.valueOf(ch2MaxErrorValue)));
-    	Platform.runLater(() ->ch2MinError.setText( String.valueOf(ch2MinErrorValue)));
-    	Platform.runLater(() ->ch2Ratio.setText( String.valueOf(ch2RatioValue)));
-    	Platform.runLater(() ->CH1SignInversion.setSelected(CH1SignInversionFlg));
-    	Platform.runLater(() ->CH2SignInversion.setSelected(CH2SignInversionFlg));
+    	Platform.runLater(() ->ch1MaxError.setText( String.valueOf(maxErrorValue[0])));
+    	Platform.runLater(() ->ch1MinError.setText( String.valueOf(minErrorValue[0])));
+    	Platform.runLater(() ->ch1Ratio.setText( String.valueOf(ratioValue[0])));
+    	Platform.runLater(() ->CH1SignInversion.setSelected(signInversionFlg[0]));
+
+    	Platform.runLater(() ->ch2MaxError.setText( String.valueOf(maxErrorValue[1])));
+    	Platform.runLater(() ->ch2MinError.setText( String.valueOf(minErrorValue[1])));
+    	Platform.runLater(() ->ch2Ratio.setText( String.valueOf(ratioValue[1])));
+    	Platform.runLater(() ->CH2SignInversion.setSelected(signInversionFlg[1]));
+
     	Platform.runLater(() ->movingAverageTimeTX.setText(String.valueOf(movingAverageTime)));
+    	Platform.runLater(() ->graphXaxisTimeTX.setText(String.valueOf(graphXaxisTime)));
 
+    	//風袋測定用スレッド
     	tentionMesure = new Runnable() {
 			@Override
   	 		   public void run() {
@@ -191,11 +222,13 @@ public class settingMenu {
   					Platform.runLater(() ->ch1RawValueLB.setText(String.format("%.3f", result[0][2])));
   					Platform.runLater(() ->ch2RawValueLB.setText(String.format("%.3f", result[1][2])));
 
-  					Platform.runLater(() ->ch1TareLB.setText(String.format("Tare=%.3f", result[0][2]-tmpTareValueCh1)));
-  					Platform.runLater(() ->ch2TareLB.setText(String.format("Tare=%.3f", result[1][2]-tmpTareValueCh2)));
+  					Platform.runLater(() ->ch1TareLB.setText(String.format("Tare=%.3f", result[0][2]-tmpTareValue[0])));
+  					Platform.runLater(() ->ch2TareLB.setText(String.format("Tare=%.3f", result[1][2]-tmpTareValue[1])));
   				  }
 			}
   	 	   };
-  	 	   tr.scheduleAtFixedRate(tentionMesure, 0, 100, TimeUnit.MILLISECONDS);
+  	 	   Platform.runLater(() ->infoLB.setText(""));
+  	 	   tr = Executors.newSingleThreadScheduledExecutor();
+  	 	   tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
     }
 }

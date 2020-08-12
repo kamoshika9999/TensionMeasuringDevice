@@ -174,12 +174,27 @@
             <Font name="Arial" size="13.0" />
          </font>
       </CheckBox>
-      <Label layoutX="358.0" layoutY="449.0" text="movingAverageTime">
+      <Label layoutX="358.0" layoutY="429.0" text="movingAverageTime(sec)">
          <font>
             <Font name="Arial" size="14.0" />
          </font>
       </Label>
-      <TextField fx:id="movingAverageTimeTX" layoutX="501.0" layoutY="445.0" prefHeight="26.0" prefWidth="95.0" text="3.0">
+      <TextField fx:id="movingAverageTimeTX" layoutX="537.0" layoutY="425.0" prefHeight="26.0" prefWidth="95.0" text="3.0">
+         <font>
+            <Font name="Arial" size="14.0" />
+         </font>
+      </TextField>
+      <Label fx:id="infoLB" layoutX="193.0" layoutY="16.0" prefHeight="31.0" prefWidth="288.0" text="infomation">
+         <font>
+            <Font name="Arial" size="18.0" />
+         </font>
+      </Label>
+      <Label layoutX="359.0" layoutY="457.0" text="graph Xaxis Time(sec)">
+         <font>
+            <Font name="Arial" size="14.0" />
+         </font>
+      </Label>
+      <TextField fx:id="graphXaxisTimeTX" layoutX="537.0" layoutY="453.0" prefHeight="26.0" prefWidth="95.0" text="120">
          <font>
             <Font name="Arial" size="14.0" />
          </font>

@@ -23,7 +23,9 @@ import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
+import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
@@ -336,6 +338,10 @@ public class MainScreenController {
 		//計測スレッド再開
 		tr = Executors.newSingleThreadScheduledExecutor();
 		tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
+
+    	//チャートレンジ、上限下限線描画
+    	chartLineRangeSetting();
+
     	calibExFlg = false;
     }
 
@@ -420,6 +426,9 @@ public class MainScreenController {
     	}catch(Exception e) {
     		System.out.println(e);
     	}
+
+    	//チャートレンジ、上限下限線描画
+    	chartLineRangeSetting();
 
     	resetExFlg = false;
     }
@@ -558,9 +567,15 @@ public class MainScreenController {
 		    				)));
 
 		    		//データーセットはdouble値 チャート表示は整数とする為、変換表示させる
-		    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getDomainAxis()).
-							setRange( (chartTime/1000)<=settingMenu.graphXaxisTime ? 0 :
-								(chartTime/1000)-settingMenu.graphXaxisTime,(chartTime/1000)<1?1:(chartTime/1000) ));
+		    		try {
+			    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getDomainAxis()).
+								setRange( (chartTime/1000)<=settingMenu.graphXaxisTime ? 0.0 :
+										(chartTime/1000)-settingMenu.graphXaxisTime,
+										chartTime/1000<1.0?1.0:(chartTime/1000)));
+		    		}catch(Exception e) {
+		    			//特に何もしない
+		    			//レンジ設定に伴う例外をスルーする為
+		    		}
 
 		    		//テンションの最大値、最小値、平均を更新
 		    		if( movingaverageEnableFlg && chartTime/1000 > disableTime) {
@@ -572,26 +587,17 @@ public class MainScreenController {
 			    		Platform.runLater(() ->ch1MinLB.setText(String.format("%.0f",ch1_min)));
 			    		Platform.runLater(() ->ch2MaxLB.setText(String.format("%.0f",ch2_max)));
 			    		Platform.runLater(() ->ch2MinLB.setText(String.format("%.0f",ch2_min)));
+		    		}else {
+			    		Platform.runLater(() ->ch1MaxLB.setText("---"));
+			    		Platform.runLater(() ->ch1MinLB.setText("---"));
+			    		Platform.runLater(() ->ch2MaxLB.setText("---"));
+			    		Platform.runLater(() ->ch2MinLB.setText("---"));
 		    		}
 		    		ch1_ave +=  movingaverage[0];
 		    		ch2_ave +=  movingaverage[1];
 		    		Platform.runLater(() ->ch1AveLB.setText(String.format("%.0f",ch1_ave/shotCnt)));
 		    		Platform.runLater(() ->ch2AveLB.setText(String.format("%.0f",ch2_ave/shotCnt)));
 
-
-		    		final double rangeRatio = 0.15;
-		    		double minRange = ch1_min<ch2_min?ch1_min-Math.abs(ch1_min*rangeRatio):ch2_min-Math.abs(ch2_min*rangeRatio);
-		    		double maxRange = ch1_max>ch2_max?ch1_max+Math.abs(ch1_max*rangeRatio):ch2_max+Math.abs(ch2_max*rangeRatio);
-		    		if( maxRange < minRange) {
-		    			maxRange = 300;
-		    			minRange = -300;
-		    		}
-		    		final double maxRange_ = maxRange;
-		    		final double minRange_ = minRange;
-		    		if(movingaverageEnableFlg && chartTime/1000 > disableTime) {
-			    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getRangeAxis()).
-								setRange(minRange_,maxRange_));
-		    		}
 		    	}else {
 		    		Platform.runLater(() ->infoLB.setText("Mesure Error"));
 		    	}
@@ -667,8 +673,12 @@ public class MainScreenController {
 
 		debugFlg = settingMenu.demoMode;
 
+    	//チャートレンジ、上限下限線描画
+    	chartLineRangeSetting();
+
 		tr = Executors.newSingleThreadScheduledExecutor();
 		tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
+
 		settingExFlg = false;
     }
 
@@ -735,9 +745,9 @@ public class MainScreenController {
 		mp_error3 = new AudioClip(new File(filePath).toURI().toString());//機器異常
 
         //チャートオブジェクト作成
-        chart_tention = chartFact();
+		chart_tention = chartFact();
 
-        //自動計測用スレッド
+		//自動計測用スレッド
  	   	tentionMesure = new Runnable() {
 		@Override
  			public void run() {
@@ -769,6 +779,37 @@ public class MainScreenController {
  	   	tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * チャートのレンジと上限下限線を描画
+     */
+    private void chartLineRangeSetting() {
+    	if(chart_tention == null) return;
+
+        // 上限線、下限線を引く
+		XYPlot xyPlot = chart_tention.getXYPlot();
+		xyPlot.clearRangeMarkers();
+		float dash [] = {4f, 5f};
+		Stroke dashed = new BasicStroke(2f,
+                BasicStroke.CAP_BUTT,
+                BasicStroke.JOIN_MITER,
+                10.0f,
+                dash,
+                0.0f);
+		Marker marker = new ValueMarker(settingMenu.maxErrorValue[0]);
+		marker.setStroke(dashed);
+		marker.setPaint(org.jfree.chart.ChartColor.red);
+		xyPlot.addRangeMarker(marker);
+
+		marker = new ValueMarker(settingMenu.minErrorValue[0]);
+		marker.setStroke(dashed);
+		marker.setPaint(org.jfree.chart.ChartColor.red);
+		xyPlot.addRangeMarker(marker);
+
+		//グラフレンジの設定
+		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getRangeAxis()).
+				setRange(settingMenu.minErrorValue[0]-15.0,settingMenu.maxErrorValue[0]+15.0));
+
+    }
     /**
      * チャートファクトリ
      * @return
@@ -853,7 +894,7 @@ public class MainScreenController {
         renderer.setSeriesStroke(1, stroke);
 		//色
         renderer.setSeriesPaint(0, ChartColor.BLUE);
-        renderer.setSeriesPaint(1, ChartColor.RED);
+        renderer.setSeriesPaint(1, ChartColor.DARK_MAGENTA);
 
         /*
         // プロットに値を付ける

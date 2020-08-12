@@ -150,9 +150,9 @@ public class MainScreenController {
     XYSeriesCollection tention_dataset;
 
     //測定データー
-    List<Double> movingaverageTimeList = new ArrayList<Double>();
-    List<Double> ch1TentionRawDataList = new ArrayList<Double>();
-    List<Double> ch2TentionRawDataList = new ArrayList<Double>();
+    List<Double> movingaverageTimeList = new ArrayList<Double>();//チャートのデータセットはデータ格納にラグが生じる為、読み出し時に不整合が出る
+    List<Double> ch1TentionRawDataList = new ArrayList<Double>();//ラグを防止する為にデータ追加時にPlatform.runLater(() ->を
+    List<Double> ch2TentionRawDataList = new ArrayList<Double>();//つけないと例外が発生する。非効率だが、UIと切り離されたオブジェクトで対応する
     double ch1_ave;
     double ch1_max;
     double ch1_min;
@@ -168,7 +168,7 @@ public class MainScreenController {
     long lockedTimer =System.currentTimeMillis();//測定を継続するかの判定用のタイマ
 	long lockedTimerThresh = 3000;//3秒以上10ｇを越えなければ測定停止
 	//機器計測エラー数
-	public static int[] mesureErrCnt = new int[2];
+	public static int[] mesureErrCnt = new int[2];//計測エラーの回数。チャンネル毎にカウント
 	final int mesureErrCntTreth = 2000;//8Hの間にmesureErrCntが閾値を超えれば機器異常発生
 	boolean mesureErrFlg = false;//機器異常が発生している場合true
 	//テンションエラーフラグ
@@ -181,18 +181,19 @@ public class MainScreenController {
 	AudioClip mp_error;
 	final String wavFileString = "117.wav";//117.wavとなっているが各号機でwavファイルの中身を変更し配置
 	AudioClip mp_error2;
-	final String wav2FileString = "error.wav";
+	final String wav2FileString = "error.wav";//テンションが設定範囲を超えた場合に鳴動
 	AudioClip mp_error3;
-	final String wav3FileString = "warning.wav";
+	final String wav3FileString = "warning.wav";//テンションが設定範囲を超えた場合に鳴動
 
 
 	//各機能実行中フラグ
+	//マルチスレッド特有の問題を回避する為に、メソッドを排他的呼び出される様するフラグ
 	boolean resetExFlg = false;
 	boolean settingExFlg = false;
 	boolean calibExFlg = false;
 
     /**
-     *
+     *ロードセルからの値を取得
      * @return  double[ch][0] hx.value   double[ch][1] hx.weight
      * @throws InterruptedException
      */
@@ -250,9 +251,9 @@ public class MainScreenController {
 					        tmpValue[i][j] = hx[i].value;
 					        if( maxValue[i] < hx[i].value) maxValue[i] = hx[i].value;
 					        if( minValue[i] > hx[i].value) minValue[i] = hx[i].value;
-					        aveValue[i] += hx[i].value;
-					        aveWeight[i] += hx[i].weight;
-					        enableCnt[i]++;
+					        aveValue[i] += hx[i].value;//平均計算様に加算
+					        aveWeight[i] += hx[i].weight;//平均計算様に加算
+					        enableCnt[i]++;//有効な測定回数
 				        }else {
 				        	mesureErrCnt[i]++;//11回連続-1ならば機器異常回数をプラスする
 				        }
@@ -260,11 +261,13 @@ public class MainScreenController {
 		        }
     		}
     		//測定のレンジがhx[i].resolution * 10倍(10g)を超えていたら結果は-1になる
-    		boolean flg=true;
+    		boolean[] flg = new boolean[2];
+    		flg[0] = true;
+    		flg[1] = true;
     		for(int i=0;i<2;i++) {
-    			if( hx[i].calibrationWeight > 0 ) {
+    			if( hx[i].calibrationWeight > 0 && enableCnt[i] > 0) {
 	    			if( maxValue[i] - minValue[i] > hx[i].resolution * 10) {
-	    				flg=false;
+	    				flg[i]=false;
 	    				mesureErrCnt[i]++;//機器異常回数をプラスする
 	    				System.out.println("******************************");
 	    				System.out.println("MesureOver " + (hx[i].resolution * 10) + "="+(maxValue[i] - minValue[i]));
@@ -275,17 +278,18 @@ public class MainScreenController {
 	    			}
     			}
     		}
-    		if( flg ) {//測定レンジが規定値以上の場合resultは-1が入ったまま返される
-	    		for(int i=0;i<2;i++) {
-			        aveValue[i] /= enableCnt[i];
-			        aveWeight[i] /= enableCnt[i];
-	    		}
-    			result[0][0] = aveValue[0];
-    			result[1][0] = aveValue[1];
-    			result[0][1] = (aveWeight[0] - settingMenu.ch1TareValue) * (settingMenu.CH1SignInversionFlg?-1:1);
-    			result[1][1] = (aveWeight[1] - settingMenu.ch2TareValue) * (settingMenu.CH2SignInversionFlg?-1:1);
-    			result[0][2] = aveWeight[0];
-    			result[1][2] = aveWeight[1];
+    		//測定レンジが規定値以上の場合resultは-1が入ったまま返される
+    		if( flg[0] && enableCnt[0] > 0) {
+				result[0][0] = aveValue[0] / enableCnt[0];
+				result[0][1] = ((aveWeight[0] / enableCnt[0]) - settingMenu.ch1TareValue)
+																* (settingMenu.CH1SignInversionFlg?-1:1);
+				result[0][2] = aveWeight[0] / enableCnt[0];
+    		}
+    		if( flg[1] && enableCnt[1] > 0) {
+				result[1][0] = aveValue[1] / enableCnt[1];
+				result[1][1] = ((aveWeight[1] / enableCnt[1]) - settingMenu.ch2TareValue)
+																* (settingMenu.CH2SignInversionFlg?-1:1);
+				result[1][2] = aveWeight[1] / enableCnt[1];
     		}
     	}catch(Exception e) {
     		System.out.println(e);
@@ -573,7 +577,8 @@ public class MainScreenController {
 
 		    		//データーセットはdouble値 チャート表示は整数とする為、変換表示させる
 		    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getDomainAxis()).
-							setRange( (chartTime/1000)<=120 ? 0 : (chartTime/1000)-120,(chartTime/1000)<1?1:(chartTime/1000) ));
+							setRange( (chartTime/1000)<=120 ? 0 :
+														(chartTime/1000)-120,(chartTime/1000)<1?1:(chartTime/1000) ));
 
 		    		//テンションの最大値、最小値、平均を更新
 		    		if( movingaverageEnableFlg && chartTime/1000 > disableTime) {

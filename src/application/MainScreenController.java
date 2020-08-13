@@ -104,9 +104,9 @@ public class MainScreenController {
     @FXML
     private Label ch2MinLB;//CH2 最小値
     @FXML
-    private Label CH1movingaverageLB;//10秒間毎の移動平均
+    private Label CH1movingaverageLB;//[settingMenu.movingAverageTime]秒間毎の移動平均
     @FXML
-    private Label CH2movingaverageLB;//10秒間毎の移動平均
+    private Label CH2movingaverageLB;//[settingMenu.movingAverageTime]秒間毎の移動平均
 
     //デバッグフラグ
     public static boolean debugFlg = false;
@@ -777,6 +777,7 @@ public class MainScreenController {
  	   	mesureStopFlg = true;
  	   	tr = Executors.newSingleThreadScheduledExecutor();
  	   	tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
+
     }
 
     /**
@@ -822,8 +823,8 @@ public class MainScreenController {
         chV.addChartMouseListener( new ChartMouseListenerFX() {
 				@Override
 				public void chartMouseClicked(ChartMouseEventFX e) {
-					XYPlot xyplot = e.getChart().getXYPlot();
-					double value = xyplot.getRangeCrosshairValue();
+					//XYPlot xyplot = e.getChart().getXYPlot();
+					//double value = xyplot.getRangeCrosshairValue();
 				}
 
 				@Override

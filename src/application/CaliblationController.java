@@ -23,49 +23,52 @@ public class CaliblationController {
     @FXML
     private URL location;
     @FXML
-    private TextField calibWeightTX_1;
+    private TextField enptyValueTX_1;//CH1の風袋(ロードセルの換算前の値)
     @FXML
-    private TextField enptyValueTX_1;
+    private TextField calibWeightTX_1;//CH1のキャリブレーションに使用した重り
     @FXML
-    private TextField calibValueTX_1;
+    private TextField calibValueTX_1;//CH1 重りを付けた時のロードセルの換算前の値
     @FXML
-    private Label GetEmptyValueInfo_1;
+    private TextField enptyValueTX_2;//CH2の風袋(ロードセルの換算前の値)
     @FXML
-    private Button GetEmptyValueBT_1;
+    private TextField calibWeightTX_2;//CH2のキャリブレーションに使用した重り
     @FXML
-    private Button GetCalibValueBT_1;
+    private TextField calibValueTX_2;//CH2 重りを付けた時のロードセルの換算前の値
     @FXML
-    private Button GetEmptyValueBT_2;
+    private Button GetEmptyValueBT_1;//CH1 風袋測定開始ボタン
     @FXML
-    private Button GetCalibValueBT_2;
+    private Button GetCalibValueBT_1;//CH1 キャリブレーション測定開始ボタン
     @FXML
-    private Button calibSaveBT;
+    private Button GetEmptyValueBT_2;//CH2 風袋測定開始ボタン
     @FXML
-    private Button calibCancelBT;
+    private Button GetCalibValueBT_2;//CH2 キャリブレーション測定開始ボタン
     @FXML
-    private TextField calibWeightTX_2;
+    private Button calibSaveBT;//キャリブレーションの結果を保存
     @FXML
-    private TextField enptyValueTX_2;
+    private Button calibCancelBT;//キャリブレーションの結果を破棄
     @FXML
-    private TextField calibValueTX_2;
+    private Label infoLB;//各種情報ラベル
     @FXML
-    private Label infoLB;;
+    private Label ch1_resultLB;//Ch1 1(g)あたりのロードセル換算値  static double[] resolution に入力される
     @FXML
-    private Label ch1_resultLB;
-    @FXML
-    private Label ch2_resultLB;
+    private Label ch2_resultLB;//Ch2 1(g)あたりのロードセル換算値  static double[] resolution に入力される
 
-    //クラス変数
-    static long[] emptyValue = new long[2];
-    static long[] calibValue = new long[2];
-    static double[] calibWeight = new double[2];
-    static double[] resolution = new double[2];
-    private String infoText ="";
-    private long aveValue= 0;
-	private boolean trFlg = false;
+    //init.csvに保存される変数--------------------------------------
+    static long[] emptyValue = new long[2];//風袋
+    static long[] calibValue = new long[2];//重りあり時のロードセル生値
+    static double[] calibWeight = new double[2];//重りの重量
+    static double[] resolution = new double[2];//1(g)あたりのロードセル換算値
+    //--------------------------------------------------------------
+    private String infoText ="";//各種メッセージはスケジューラーで書き込まれる為、クラス変数にしておく
+    private long aveValue= 0;//スケジューラーで書き込まれる為、クラス変数にしておく
+	private boolean trFlg = false;//計測メソッドの２重呼び出し回避用
 	private TextField targetTX;//スケジューラーで書き換えを行うTextfield
 	private boolean targetTX_comp = false;//スケジューラーで書き換え後にfalseに設定 測定開始時にTrueに設定
 
+	/**
+	 * 保存せず戻る
+	 * @param event
+	 */
     @FXML
     void onCalibCancelBT(ActionEvent event) {
 		Scene scene = ((Node) event.getSource()).getScene();
@@ -73,6 +76,10 @@ public class CaliblationController {
 		window.hide();
     }
 
+    /**
+     * キャリブレーションの結果を保存
+     * @param event
+     */
     @FXML
     void onCalibSaveBT(ActionEvent event) {
     	emptyValue[0] = Long.valueOf( this.enptyValueTX_1.getText() );
@@ -103,7 +110,10 @@ public class CaliblationController {
 		window.hide();
     }
 
-
+    /**
+     * CH1 キャリブレーション実行
+     * @param event
+     */
     @FXML
     void onGetCalibValu_1(ActionEvent event) {
     	if(trFlg) return;
@@ -112,6 +122,10 @@ public class CaliblationController {
     	getLoadCellValue(0);
     }
 
+    /**
+     * CH1 風袋取得
+     * @param event
+     */
     @FXML
     void onGetEmptyValueBT_1(ActionEvent event) {
     	if(trFlg) return;
@@ -119,6 +133,11 @@ public class CaliblationController {
     	targetTX = enptyValueTX_1;
     	getLoadCellValue(0);
     }
+
+    /**
+     * CH2 キャリブレーション実行
+     * @param event
+     */
     @FXML
     void onGetCalibValu_2(ActionEvent event) {
     	if(trFlg) return;
@@ -127,6 +146,10 @@ public class CaliblationController {
     	getLoadCellValue(1);
     }
 
+    /**
+     * CH2 風袋取得
+     * @param event
+     */
     @FXML
     void onGetEmptyValueBT_2(ActionEvent event) {
     	if(trFlg) return;
@@ -134,22 +157,23 @@ public class CaliblationController {
     	targetTX = enptyValueTX_2;
     	getLoadCellValue(1);
     }
+
     /**
-    *
+    *ロードセルからデーターを取得(風袋/キャリブレーション共通で使用)
     * @return  double[chNo] hx.value
     */
-   public void getLoadCellValue(int chNo){
+    public void getLoadCellValue(int chNo){
 	   ScheduledExecutorService tr = Executors.newSingleThreadScheduledExecutor();
 
 	   /*
-	    * 別スレッドで取得しないとUIが更新できない
+	    * 別スレッドで取得しないとUIが更新できない(計測中に値が更新されず固まったように見えてしまうことを回避
 	    */
 	   Runnable frameGrabber = new Runnable() {
 		   @Override
 		   public void run() {
-			   trFlg=true;
-			   targetTX_comp = true;
-			   final int rpeetCnt = (int)(10/0.1);
+			   trFlg=true;//実行開始フラグ
+			   targetTX_comp = true;//データー取得が行われたことを示すフラグ
+			   final int rpeetCnt = (int)(10/0.1);//HX711はfps=10である為100回測定の内、有効な値の平均を計算する
 	   		   aveValue=0;
 
 	   		   System.out.println("----初期偏差 確認開始-----");
@@ -157,7 +181,6 @@ public class CaliblationController {
 	   		   final int tryCnt = 20;
 	   		   long[] tmpValue = new long[tryCnt];
 	   		   double tmpAve = 0;
-	   		   double tmpMedian;
 	   		   boolean okFlg = false;//偏差のMAXが500以下ならばTrue;
 
 	   		   while( !okFlg ) {
@@ -199,10 +222,6 @@ public class CaliblationController {
 		   		   }
 	   		   }
 	   		   System.out.println("----初期偏差 確認終了");
-
-	   		   //tmpMedian = utilMath.mean(tmpDeviation);//偏差中央値取得
-	   		   //if(tmpMedian<10000) tmpMedian=10000;
-	   		   //System.out.println("偏差中央値tmpMedian="+tmpMedian);
 
 	   		   System.out.println();
 

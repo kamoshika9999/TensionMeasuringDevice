@@ -59,7 +59,7 @@ public class csvSaveLoad {
 			FileReader fr = new FileReader( MyUtil.getJarFolder() + "init.csv");
 			CSVReader reader=new CSVReader( fr );
 
-			String[] headStr = reader.readNext();//ヘッダー読み込み
+			reader.readNext();//ヘッダー読み込み
 			String[] subStr = reader.readNext();//キャリブレーションデータ読み込み
 			reader.close();
 

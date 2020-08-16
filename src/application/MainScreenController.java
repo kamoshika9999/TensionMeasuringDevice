@@ -441,7 +441,7 @@ public class MainScreenController {
 		ch2TentionRawDataList.clear();
 		ch1MovingaverageTimeList.clear();
 		ch2MovingaverageTimeList.clear();
-		
+
 		//ラベル表示リセット
 		Platform.runLater(() ->ch1AveLB.setText("---"));
 		Platform.runLater(() ->ch2AveLB.setText("---"));
@@ -518,7 +518,7 @@ public class MainScreenController {
     		long chartTime = System.currentTimeMillis() - startTime.getTime();//経過時間(mSec単位)
 
 	    	if( !mesureStopFlg ) {
-		    	if( mesureTreshFlg ) {//両チャンネルが-1である場合はエラー表示
+		    	if( mesureTreshFlg ) {//どちらかのチャンネルが10gを超えている場合
 		    		shotCnt++;
 		    		//n秒間の生データの移動平均計算
 		    		//判定も移動平均で行う
@@ -547,14 +547,13 @@ public class MainScreenController {
 					    		if( tmpCnt > 0) {
 				    				movingaverage[0] /= tmpCnt;
 					    		}else {
-					    			//移動平均が計算出来なかった場合
+					    			//移動平均が計算出来なかった場合(movingaverageTime時間内で計測値が無い場合)
 					    			movingaverage[0] = result[0][1];
 					    		}
 				    		}
 			    		}
 		    		}else {
 		    			movingaverage[0] = result[0][1];
-
 		    		}
 		    		if( result[0][0] != -1) {
 	    				ch1_ave +=  movingaverage[0];
@@ -590,14 +589,13 @@ public class MainScreenController {
 					    		if( tmpCnt > 0) {
 				    				movingaverage[1] /= tmpCnt;
 					    		}else {
-					    			//移動平均が計算出来なかった場合
+					    			//移動平均が計算出来なかった場合(movingaverageTime時間内で計測値が無い場合)
 					    			movingaverage[1] = result[1][1];
 					    		}
 				    		}
 			    		}
 		    		}else {
 		    			movingaverage[1] = result[1][1];
-
 		    		}
 		    		if( result[1][0] != -1) {
 	    				ch2_ave +=  movingaverage[1];

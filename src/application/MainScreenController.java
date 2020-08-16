@@ -152,7 +152,8 @@ public class MainScreenController {
     XYSeriesCollection tention_dataset;
 
     //測定データー
-    List<Double> movingaverageTimeList = new ArrayList<Double>();//チャートのデータセットはデータ格納にラグが生じる為、読み出し時に不整合が出る
+    List<Double> ch1MovingaverageTimeList = new ArrayList<Double>();//チャートのデータセットはデータ格納にラグが生じる為、読み出し時に不整合が出る
+    List<Double> ch2MovingaverageTimeList = new ArrayList<Double>();//チャートのデータセットはデータ格納にラグが生じる為、読み出し時に不整合が出る
     List<Double> ch1TentionRawDataList = new ArrayList<Double>();//ラグを防止する為にデータ追加時にPlatform.runLater(() ->を
     List<Double> ch2TentionRawDataList = new ArrayList<Double>();//つけないと例外が発生する。非効率だが、UIと切り離されたオブジェクトで対応する
     double ch1_ave;
@@ -162,6 +163,7 @@ public class MainScreenController {
     double ch2_max;
     double ch2_min;
     int shotCnt;
+    int[] ch_ShotCnt = new int[2];
     Timestamp startTime;
 
     static boolean mesureFlg =false; //mesure()メソッドを排他的に呼び出すためのフラグ
@@ -224,6 +226,28 @@ public class MainScreenController {
 	    	result[0][0] = result[0][2] * resolution;
 	    	result[1][0] = result[1][2] * resolution;
 
+	    	if( rand.nextDouble() > 0.99 && hx[0].calibrationWeight > 0) {
+		    	result[0][0] = -1;
+		    	result[0][1] = -1;
+		    	result[0][2] = -1;
+		    	mesureErrCnt[0]++;
+	    	}
+	    	if( rand.nextDouble() > 0.99 && hx[1].calibrationWeight > 0) {
+		    	result[1][0] = -1;
+		    	result[1][1] = -1;
+		    	result[1][2] = -1;
+		    	mesureErrCnt[1]++;
+	    	}
+	    	if( hx[0].calibrationWeight == 0 ) {
+		    	result[0][0] = -1;
+		    	result[0][1] = -1;
+		    	result[0][2] = -1;
+	    	}
+	    	if( hx[1].calibrationWeight == 0 ) {
+		    	result[1][0] = -1;
+		    	result[1][1] = -1;
+		    	result[1][2] = -1;
+	    	}
 	    	try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
@@ -335,6 +359,13 @@ public class MainScreenController {
 		//設定ウィンドウを開く
 		stage.showAndWait();
 
+		//キャリブレーションデーター反映
+        for(int i=0;i<2;i++) {
+	    	hx[i].emptyValue =  CaliblationController.emptyValue[i];
+	    	hx[i].calibrationValue = CaliblationController.calibValue[i];
+	    	hx[i].calibrationWeight =CaliblationController.calibWeight[i];
+	    	hx[i].resolution = CaliblationController.resolution[i];
+    	}
 		//計測スレッド再開
 		tr = Executors.newSingleThreadScheduledExecutor();
 		tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
@@ -385,7 +416,7 @@ public class MainScreenController {
 	    	if( System.currentTimeMillis() - startTime.getTime() > 60*1000 ) {
 				if( !csvSaveLoad.saveDataSet(
 						ch1TentionRawDataList,ch2TentionRawDataList,tention_dataset,
-						startTime,ch1_max,ch1_min,ch1_ave,ch2_max,ch2_min,ch2_ave,shotCnt) ) {
+						startTime,ch1_max,ch1_min,ch1_ave,ch2_max,ch2_min,ch2_ave,ch_ShotCnt,shotCnt) ) {
 					System.out.println("データーセット保存異常");
 					Platform.runLater( () ->this.infoLB.setText("データーセット保存異常"));
 				}
@@ -399,6 +430,8 @@ public class MainScreenController {
         ch1_ave = 0;
         ch2_ave = 0;
         shotCnt=0;
+        ch_ShotCnt[0] = 0;
+        ch_ShotCnt[1] = 0;
 
 		//チャート用データーセットリセット
 		Platform.runLater( () ->tention_dataset.getSeries(0).clear());
@@ -406,7 +439,25 @@ public class MainScreenController {
 		Platform.runLater( () ->mesureCntLB.setText("----------"));
 		ch1TentionRawDataList.clear();
 		ch2TentionRawDataList.clear();
-		movingaverageTimeList.clear();
+		ch1MovingaverageTimeList.clear();
+		ch2MovingaverageTimeList.clear();
+		
+		//ラベル表示リセット
+		Platform.runLater(() ->ch1AveLB.setText("---"));
+		Platform.runLater(() ->ch2AveLB.setText("---"));
+		Platform.runLater(() ->ch1MaxLB.setText("---"));
+		Platform.runLater(() ->ch1MinLB.setText("---"));
+		Platform.runLater(() ->ch2MaxLB.setText("---"));
+		Platform.runLater(() ->ch2MinLB.setText("---"));
+		Platform.runLater(() ->CH1movingaverageLB.setText("---"));
+		Platform.runLater(() ->CH2movingaverageLB.setText("---"));
+		Platform.runLater(() ->hxvalueLB1.setText("---"));
+		Platform.runLater(() ->hxvalueLB2.setText("---"));
+		Platform.runLater(() ->hxvalueLB4.setText("---"));
+		Platform.runLater(() ->hxvalueLB5.setText("---"));
+		Platform.runLater(() ->ch1ErrCntLB.setText("---"));
+		Platform.runLater(() ->ch2ErrCntLB.setText("---"));
+
 
 		//機器異常リセット ※eventがnullの時は自動停止時に呼び出されたと判断しアラーム鳴動を止めない
 		//機器異常は常時監視されている8H以内に規定の回数計測エラーが発生した場合、巻きが停止して
@@ -439,24 +490,24 @@ public class MainScreenController {
     private void mesure() {
     		final int disableTime = 60;//判定、最大値、最小値の更新無効タイマ
 
-    		if(mesureFlg) return;//別スレッドから同時複数呼び出しを排他する
-    		//デバッグコード--------------------
-    		if( debugFlg ) {
-		    	try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-    		}
-    		//-----------------------------------
+    		if(mesureFlg) return;//別スレッドから同時複数呼び出しを無効にする
+
 	    	double[][] result = getLoadCellValue();
-	    	if( result[0][0] != -1 ) {
+	    	if( result[0][0] != -1 && hx[0].calibrationWeight > 0) {
 		    	Platform.runLater(() ->hxvalueLB1.setText(String.format("%.0f",result[0][0])));
 		    	Platform.runLater(() ->hxvalueLB2.setText(String.format("%.0f",result[0][1])));
-
+	    	}else if(result[0][0] == -1 && hx[0].calibrationWeight > 0){
+				Platform.runLater(() ->hxvalueLB1.setText("Error"));
+				Platform.runLater(() ->hxvalueLB2.setText("Error"));
+	    	}
+		    if( result[1][0] != -1 && hx[1].calibrationWeight > 0) {
 		    	Platform.runLater(() ->hxvalueLB4.setText(String.format("%.0f",result[1][0])));
 		    	Platform.runLater(() ->hxvalueLB5.setText(String.format("%.0f",result[1][1])));
-	    	}
+		    }else if(result[1][0] == -1 && hx[1].calibrationWeight > 0) {
+		    	Platform.runLater(() ->hxvalueLB4.setText("Error"));
+		    	Platform.runLater(() ->hxvalueLB5.setText("Error"));
+		    }
+
 	    	if( Math.abs(result[0][1]) > 10 || Math.abs(result[1][1]) > 10 ) {
 	    		mesureTreshFlg = true;
 	    	}else {
@@ -467,63 +518,162 @@ public class MainScreenController {
     		long chartTime = System.currentTimeMillis() - startTime.getTime();//経過時間(mSec単位)
 
 	    	if( !mesureStopFlg ) {
-		    	if( result[0][0] != -1 ) {
+		    	if( mesureTreshFlg ) {//両チャンネルが-1である場合はエラー表示
 		    		shotCnt++;
 		    		//n秒間の生データの移動平均計算
 		    		//判定も移動平均で行う
 		    		final double movingaverageTime = settingMenu.movingAverageTime;
-		    		boolean movingaverageEnableFlg = false;
-		    		int chartDataIndex = shotCnt - 2;
+		    		int chartDataIndex;
+		    		boolean movingaverageFlg;
 		    		double[] movingaverage = new double[2];
-		    		double tmpCnt = 0.0;
+		    		double tmpCnt = 0;
+		    		double tmpTime;
 		    		try {
-		    		while( !movingaverageEnableFlg && chartTime/1000.0 > movingaverageTime && chartDataIndex>0) {
-			    		double tmpTime=movingaverageTimeList.get(chartDataIndex);
-			    		movingaverage[0] += ch1TentionRawDataList.get(chartDataIndex);
-			    		movingaverage[1] += ch2TentionRawDataList.get(chartDataIndex);
-			    		tmpCnt++;
-			    		if( tmpTime > chartTime/1000.0 - movingaverageTime && chartDataIndex>0) {
-			    			chartDataIndex--;
-			    		}else {
-			    			movingaverageEnableFlg = true;
+		    		//CH1を計算----------------------------------------------------------------------------------------
+		    		if( ch_ShotCnt[0] > 1 && chartTime/1000.0 > movingaverageTime) {
+			    		chartDataIndex = ch_ShotCnt[0] - 1;
+			    		tmpCnt=0;
+			    		movingaverageFlg=false;
+			    		while( !movingaverageFlg ) {
+				    		tmpTime = ch1MovingaverageTimeList.get( chartDataIndex );
+				    		if( result[0][0] > 0 && ch1TentionRawDataList.get( chartDataIndex ) > 0) {
+				    			movingaverage[0] += ch1TentionRawDataList.get( chartDataIndex );
+				    			tmpCnt++;
+				    		}
+				    		if( tmpTime > chartTime/1000.0 - movingaverageTime && chartDataIndex > 0) {
+				    			chartDataIndex--;
+				    		}else {
+				    			movingaverageFlg = true;
+					    		if( tmpCnt > 0) {
+				    				movingaverage[0] /= tmpCnt;
+					    		}else {
+					    			//移動平均が計算出来なかった場合
+					    			movingaverage[0] = result[0][1];
+					    		}
+				    		}
 			    		}
-		    		}
-		    		if( movingaverageEnableFlg ) {
-		    			movingaverage[0] /= tmpCnt;
-		    			movingaverage[1] /= tmpCnt;
 		    		}else {
-		    			//経過時間が移動平均計算タイマ(movingaverageTime)以下であれば生データを格納
 		    			movingaverage[0] = result[0][1];
-		    			movingaverage[1] = result[1][1];
+
 		    		}
+		    		if( result[0][0] != -1) {
+	    				ch1_ave +=  movingaverage[0];
+				    	ch1MovingaverageTimeList.add(chartTime/1000.0);
+			    		ch1TentionRawDataList.add(result[0][1]);//生データを格納
+
+			    		//データーセットは表示の都合でDouble値で格納する
+			    		Platform.runLater( () ->tention_dataset.getSeries(0).add((double)chartTime/1000.0,movingaverage[0]));
+
+			    		//テンションの最大値、最小値、平均を更新
+			    		if( chartTime/1000 > disableTime) {
+				    		if( ch1_max < movingaverage[0] ) ch1_max = movingaverage[0];
+				    		if( ch1_min > movingaverage[0] ) ch1_min = movingaverage[0];
+			    		}
+			    		ch_ShotCnt[0]++;
+		    		}
+		    		//-------------------------------------------------------------------------------------------------
+		    		//CH2を計算
+		    		if( ch_ShotCnt[1] > 1 && chartTime/1000.0 > movingaverageTime) {
+			    		chartDataIndex = ch_ShotCnt[1] - 1;
+			    		tmpCnt=0;
+			    		movingaverageFlg=false;
+			    		while( !movingaverageFlg ) {
+				    		tmpTime = ch2MovingaverageTimeList.get( chartDataIndex );
+				    		if( result[1][0] > 0 && ch2TentionRawDataList.get( chartDataIndex ) > 0) {
+				    			movingaverage[1] += ch2TentionRawDataList.get( chartDataIndex );
+				    			tmpCnt++;
+				    		}
+				    		if( tmpTime > chartTime/1000.0 - movingaverageTime && chartDataIndex > 0) {
+				    			chartDataIndex--;
+				    		}else {
+				    			movingaverageFlg = true;
+					    		if( tmpCnt > 0) {
+				    				movingaverage[1] /= tmpCnt;
+					    		}else {
+					    			//移動平均が計算出来なかった場合
+					    			movingaverage[1] = result[1][1];
+					    		}
+				    		}
+			    		}
+		    		}else {
+		    			movingaverage[1] = result[1][1];
+
+		    		}
+		    		if( result[1][0] != -1) {
+	    				ch2_ave +=  movingaverage[1];
+				    	ch2MovingaverageTimeList.add(chartTime/1000.0);
+			    		ch2TentionRawDataList.add(result[1][1]);//生データを格納
+
+			    		//データーセットは表示の都合でDouble値で格納する
+			    		Platform.runLater( () ->tention_dataset.getSeries(1).add((double)chartTime/1000.0, movingaverage[1]));
+
+			    		//テンションの最大値、最小値、平均を更新
+			    		if( chartTime/1000 > disableTime) {
+				    		if( ch2_max < movingaverage[1] ) ch2_max = movingaverage[1];
+				    		if( ch2_min > movingaverage[1] ) ch2_min = movingaverage[1];
+			    		}
+			    		ch_ShotCnt[1]++;
+		    		}
+		    		//-------------------------------------------------------------------------------------------------
+
+		    		//テンションの最大値、最小値、平均を更新
+		    		if( chartTime/1000 > disableTime) {
+			    		if( hx[0].calibrationWeight > 0 ) {
+				    		Platform.runLater(() ->ch1MaxLB.setText(String.format("%.0f",ch1_max)));
+				    		Platform.runLater(() ->ch1MinLB.setText(String.format("%.0f",ch1_min)));
+			    		}
+			    		if( hx[1].calibrationWeight > 0 ) {
+				    		Platform.runLater(() ->ch2MaxLB.setText(String.format("%.0f",ch2_max)));
+				    		Platform.runLater(() ->ch2MinLB.setText(String.format("%.0f",ch2_min)));
+			    		}
+			    	}else {
+			    		Platform.runLater(() ->ch1MaxLB.setText("---"));
+			    		Platform.runLater(() ->ch1MinLB.setText("---"));
+			    		Platform.runLater(() ->ch2MaxLB.setText("---"));
+			    		Platform.runLater(() ->ch2MinLB.setText("---"));
+		    		}
+
+		    		if( hx[0].calibrationWeight > 0 ) {
+		    			Platform.runLater(() ->ch1AveLB.setText(String.format("%.0f",ch1_ave/ch_ShotCnt[0])));
+		    		}
+		    		if( hx[1].calibrationWeight > 0 ) {
+		    			Platform.runLater(() ->ch2AveLB.setText(String.format("%.0f",ch2_ave/ch_ShotCnt[1])));
+		    		}
+
+
 		    		}catch(Exception e) {
 		    			System.out.println(e);
 		    		}
 		    		//移動平均表示
-		    		Platform.runLater(() ->this.CH1movingaverageLB.setText(String.format("%.0f", movingaverage[0])));
-		    		Platform.runLater(() ->this.CH2movingaverageLB.setText(String.format("%.0f", movingaverage[1])));
-
+		    		if( hx[0].calibrationWeight > 0 && result[0][0] > 0) {
+		    			Platform.runLater(() ->CH1movingaverageLB.setText(String.format("%.0f", movingaverage[0])));
+		    		}
+		    		if( hx[1].calibrationWeight > 0 && result[1][0] > 0) {
+		    			Platform.runLater(() ->CH2movingaverageLB.setText(String.format("%.0f", movingaverage[1])));
+		    		}
 		    		int judgmentFlg = 0;//0:合格 1～2:警告 3～:規格外
 		    		//規格判定
 		    		for(int i=0;i<2;i++) {
-			    		if( movingaverage[i] >
-			    			settingMenu.maxErrorValue[i] - (settingMenu.maxErrorValue[i]*settingMenu.ratioValue[i]) ) {
-			    			Platform.runLater(() ->infoLB.setText("MaxWarning"));
-			    			judgmentFlg += 1;
-			    		}
-			    		if( movingaverage[i] > settingMenu.maxErrorValue[i]) {
-			    			Platform.runLater(() ->infoLB.setText("MaxOver!!"));
-			    			judgmentFlg += 3;
-			    		}
-			    		if( movingaverage[i] <
-		    			settingMenu.minErrorValue[i] + (settingMenu.minErrorValue[i]*settingMenu.ratioValue[i]) ) {
-			    			Platform.runLater(() ->infoLB.setText("MinWarning"));
-			    			judgmentFlg += 1;
-			    		}
-			    		if( movingaverage[i] < settingMenu.minErrorValue[i]) {
-			    			Platform.runLater(() ->infoLB.setText("MinLower!!"));
-			    			judgmentFlg += 3;
-			    		}
+		    			if( hx[i].calibrationWeight > 0 && result[i][0] > 0) {
+				    		if( movingaverage[i] >
+				    			settingMenu.maxErrorValue[i] - (settingMenu.maxErrorValue[i]*settingMenu.ratioValue[i]) ) {
+				    			Platform.runLater(() ->infoLB.setText("MaxWarning"));
+				    			judgmentFlg += 1;
+				    		}
+				    		if( movingaverage[i] > settingMenu.maxErrorValue[i]) {
+				    			Platform.runLater(() ->infoLB.setText("MaxOver!!"));
+				    			judgmentFlg += 3;
+				    		}
+				    		if( movingaverage[i] <
+			    			settingMenu.minErrorValue[i] + (settingMenu.minErrorValue[i]*settingMenu.ratioValue[i]) ) {
+				    			Platform.runLater(() ->infoLB.setText("MinWarning"));
+				    			judgmentFlg += 1;
+				    		}
+				    		if( movingaverage[i] < settingMenu.minErrorValue[i]) {
+				    			Platform.runLater(() ->infoLB.setText("MinLower!!"));
+				    			judgmentFlg += 3;
+				    		}
+		    			}
 		    		}
 
 		    		//判定表示
@@ -531,11 +681,9 @@ public class MainScreenController {
 			    		Platform.runLater(() ->infoLB.setText("Measuring"));
 		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#5eff00ff")));
 		    			Platform.runLater(() ->judgmentLB.setText("OK"));
-		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
 		    		}else if( judgmentFlg ==1 || judgmentFlg ==2) {
 		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ffff00ff")));
 		    			Platform.runLater(() ->judgmentLB.setText("!!!"));
-		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
 		    	    	//約disableTime秒未満は鳴らさない
 		    			if( !mp_error3.isPlaying() && !mesureErrFlg && mesureTreshFlg &&
 		    					( System.currentTimeMillis() - startTime.getTime() > disableTime*1000 )) {
@@ -545,19 +693,12 @@ public class MainScreenController {
 		    		}else if( judgmentFlg > 2){
 		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
 		    			Platform.runLater(() ->judgmentLB.setText("NG"));
-		    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
 		    			//計測開始から一定時間経過後かつ10gを超えている場合のみエラーフラグをたてる
 		    			if( System.currentTimeMillis()-startTime.getTime()>disableTime*1000  && mesureTreshFlg) {
 		    				tentionErrFlg = true;
 		    			}
 		    		}
 
-		    		//データーセットは表示の都合でDouble値で格納する
-		    		Platform.runLater( () ->tention_dataset.getSeries(0).add((double)chartTime/1000.0,movingaverage[0]));
-		    		Platform.runLater( () ->tention_dataset.getSeries(1).add((double)chartTime/1000.0,movingaverage[1]));
-		    		movingaverageTimeList.add(chartTime/1000.0);
-		    		ch1TentionRawDataList.add(result[0][1]);//生データを格納
-		    		ch2TentionRawDataList.add(result[1][1]);//生データを格納
 
 		    		//経過時間表示
 		    		Platform.runLater( () ->mesureCntLB.setText( String.format("%d H %d M %d S",
@@ -577,36 +718,19 @@ public class MainScreenController {
 		    			//レンジ設定に伴う例外をスルーする為
 		    		}
 
-		    		//テンションの最大値、最小値、平均を更新
-		    		if( movingaverageEnableFlg && chartTime/1000 > disableTime) {
-			    		if( ch1_max < movingaverage[0] ) ch1_max = movingaverage[0];
-			    		if( ch1_min > movingaverage[0] ) ch1_min = movingaverage[0];
-			    		if( ch2_max < movingaverage[1] ) ch2_max = movingaverage[1];
-			    		if( ch2_min > movingaverage[1] ) ch2_min = movingaverage[1];
-			    		Platform.runLater(() ->ch1MaxLB.setText(String.format("%.0f",ch1_max)));
-			    		Platform.runLater(() ->ch1MinLB.setText(String.format("%.0f",ch1_min)));
-			    		Platform.runLater(() ->ch2MaxLB.setText(String.format("%.0f",ch2_max)));
-			    		Platform.runLater(() ->ch2MinLB.setText(String.format("%.0f",ch2_min)));
-		    		}else {
-			    		Platform.runLater(() ->ch1MaxLB.setText("---"));
-			    		Platform.runLater(() ->ch1MinLB.setText("---"));
-			    		Platform.runLater(() ->ch2MaxLB.setText("---"));
-			    		Platform.runLater(() ->ch2MinLB.setText("---"));
-		    		}
-		    		ch1_ave +=  movingaverage[0];
-		    		ch2_ave +=  movingaverage[1];
-		    		Platform.runLater(() ->ch1AveLB.setText(String.format("%.0f",ch1_ave/shotCnt)));
-		    		Platform.runLater(() ->ch2AveLB.setText(String.format("%.0f",ch2_ave/shotCnt)));
 
 		    	}else {
 		    		Platform.runLater(() ->infoLB.setText("Mesure Error"));
 		    	}
 	    	}else{
-		    	Platform.runLater(() ->hxvalueLB1.setText(String.format("%.0f",0.0)));
-		    	Platform.runLater(() ->hxvalueLB2.setText(String.format("%.0f",0.0)));
-
-		    	Platform.runLater(() ->hxvalueLB4.setText(String.format("%.0f",0.0)));
-		    	Platform.runLater(() ->hxvalueLB5.setText(String.format("%.0f",0.0)));
+	    		if( hx[0].calibrationWeight > 0 ) {
+			    	Platform.runLater(() ->hxvalueLB1.setText(String.format("%.0f",0.0)));
+			    	Platform.runLater(() ->hxvalueLB2.setText(String.format("%.0f",0.0)));
+	    		}
+	    		if( hx[1].calibrationWeight > 0 ) {
+			    	Platform.runLater(() ->hxvalueLB4.setText(String.format("%.0f",0.0)));
+			    	Platform.runLater(() ->hxvalueLB5.setText(String.format("%.0f",0.0)));
+	    		}
 		    	Platform.runLater(() ->infoLB.setText("Mesure Stop"));
 	    	}
 	    	//テンション異常
@@ -626,11 +750,13 @@ public class MainScreenController {
     			Platform.runLater(() ->infoLB.setText("Equipment abnormality"));
     			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
     			Platform.runLater(() ->judgmentLB.setText("×"));
-    			Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
     		}
-    		Platform.runLater(() ->this.ch1ErrCntLB.setText(String.valueOf( mesureErrCnt[0] )));
-    		Platform.runLater(() ->this.ch2ErrCntLB.setText(String.valueOf( mesureErrCnt[1] )));
-
+    		if( hx[0].calibrationWeight > 0 ) {
+    			Platform.runLater(() ->ch1ErrCntLB.setText(String.valueOf( mesureErrCnt[0] )));
+    		}
+    		if( hx[1].calibrationWeight > 0 ) {
+    			Platform.runLater(() ->ch2ErrCntLB.setText(String.valueOf( mesureErrCnt[1] )));
+    		}
     }
 
     /**
@@ -773,6 +899,24 @@ public class MainScreenController {
 				}
  		   	}
  	   	};
+
+ 	   	//書式設定
+ 	   	Platform.runLater(() ->judgmentLB.setAlignment(Pos.CENTER));
+ 	   	Platform.runLater(() ->hxvalueLB1.setAlignment(Pos.CENTER_RIGHT));
+ 	   	Platform.runLater(() ->hxvalueLB2.setAlignment(Pos.CENTER_RIGHT));
+ 	   	Platform.runLater(() ->hxvalueLB4.setAlignment(Pos.CENTER_RIGHT));
+ 	   	Platform.runLater(() ->hxvalueLB5.setAlignment(Pos.CENTER_RIGHT));
+ 	   	Platform.runLater(() ->ch1AveLB.setAlignment(Pos.CENTER_RIGHT));
+ 	   	Platform.runLater(() ->ch2AveLB.setAlignment(Pos.CENTER_RIGHT));
+ 	   	Platform.runLater(() ->ch1MaxLB.setAlignment(Pos.CENTER_RIGHT));
+ 	   	Platform.runLater(() ->ch2MaxLB.setAlignment(Pos.CENTER_RIGHT));
+ 	   	Platform.runLater(() ->ch1MinLB.setAlignment(Pos.CENTER_RIGHT));
+ 	   	Platform.runLater(() ->ch2MinLB.setAlignment(Pos.CENTER_RIGHT));
+ 	   	Platform.runLater(() ->ch1ErrCntLB.setAlignment(Pos.CENTER_RIGHT));
+ 	   	Platform.runLater(() ->ch2ErrCntLB.setAlignment(Pos.CENTER_RIGHT));
+ 	   	Platform.runLater(() ->CH1movingaverageLB.setAlignment(Pos.CENTER_RIGHT));
+ 	   	Platform.runLater(() ->CH2movingaverageLB.setAlignment(Pos.CENTER_RIGHT));
+
  	   	startTime = new Timestamp(System.currentTimeMillis());//メソッド内でnullを避けるため
  	   	mesureStopFlg = true;
  	   	tr = Executors.newSingleThreadScheduledExecutor();

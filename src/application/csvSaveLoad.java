@@ -193,7 +193,7 @@ public class csvSaveLoad {
 			List<Double> ch1TentionRawDataList, List<Double> ch2TentionRawDataList,
 			XYSeriesCollection dataSet,Timestamp startTime,
 			double ch1_max, double ch1_min, double ch1_ave,
-			double ch2_max, double ch2_min, double ch2_ave, long shotCnt) {
+			double ch2_max, double ch2_min, double ch2_ave, int[] shotCnt,int mesureCnt) {
 		Timestamp EndTime = new Timestamp(System.currentTimeMillis());
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH'h'mm'm'ss's'");
         String StartDate = sdf.format(startTime);
@@ -262,7 +262,7 @@ public class csvSaveLoad {
 
         	//エラーカウント
 			writer.writeNext(new String[] { "" });
-			writer.writeNext(new String[] { "[MesureErrorCount]" });
+			writer.writeNext(new String[] { "[CH1 MesureErrorCount]","[CH2 MesureErrorCount]" });
 			writer.writeNext(new String[] {
 					String.valueOf(MainScreenController.mesureErrCnt[0]),
 					String.valueOf(MainScreenController.mesureErrCnt[1]) });
@@ -291,48 +291,74 @@ public class csvSaveLoad {
         	 */
 			writer.writeNext(new String[] { "" });
 			writer.writeNext(new String[] { "[Statistics]" });
-        	headStr = new String[7];
+        	headStr = new String[9];
     		headStr[0]="ch1_max";
     		headStr[1]="ch1_min";
     		headStr[2]="ch1_ave";
     		headStr[3]="ch2_max";
     		headStr[4]="ch2_min";
     		headStr[5]="ch2_ave";
-    		headStr[6]="mesureCount";
+    		headStr[6]="CH1 mesureCount";
+    		headStr[7]="CH2 mesureCount";
+    		headStr[8]="AllmesureCount";
 	        writer.writeNext(headStr);  //ヘッダー書き込み
 
-	        subStr = new String[7];
+	        subStr = new String[9];
     		subStr[0]=String.valueOf( ch1_max );
     		subStr[1]=String.valueOf( ch1_min );
-    		subStr[2]=String.valueOf( ch1_ave / shotCnt);
+    		subStr[2]=String.valueOf( ch1_ave / shotCnt[0]);
     		subStr[3]=String.valueOf( ch2_max );
     		subStr[4]=String.valueOf( ch2_min );
-    		subStr[5]=String.valueOf( ch2_ave / shotCnt);
-    		subStr[6]=String.valueOf( shotCnt );
+    		subStr[5]=String.valueOf( ch2_ave / shotCnt[0]);
+    		subStr[6]=String.valueOf( shotCnt[0] );
+    		subStr[7]=String.valueOf( shotCnt[1] );
+    		subStr[8]=String.valueOf( mesureCnt );
+
         	writer.writeNext(subStr);
 
         	//生データー
 			writer.writeNext(new String[] { "" });
 			writer.writeNext(new String[] { "[RawData]" });
-        	headStr = new String[5];
-    		headStr[0]="ElapsedTime(sec)";
+        	headStr = new String[6];
+    		headStr[0]="Ch1 ElapsedTime(sec)";
     		headStr[1]="CH1 tention(g)";
-    		headStr[2]="CH2 tention(g)";
-    		headStr[3]="CH1 RawTention(g)";
-    		headStr[4]="CH2 RawTention(g)";
+    		headStr[2]="CH1 RawTention(g)";
+
+    		headStr[3]="Ch2 ElapsedTime(sec)";
+    		headStr[4]="CH2 tention(g)";
+    		headStr[5]="CH2 RawTention(g)";
 	        writer.writeNext(headStr);  //ヘッダー書き込み
 
-	        int count = dataSet.getSeries(0).getItems().size();
-	        subStr = new String[5];
-	        for(int i=0;i<count;i++) {
-	        	subStr[0] = (String.valueOf(
-	        			((org.jfree.data.xy.XYDataItem)dataSet.getSeries(0).getItems().get(i)).getX()));
-	        	subStr[1] = (String.valueOf(
-	        			((org.jfree.data.xy.XYDataItem)dataSet.getSeries(0).getItems().get(i)).getYValue()));
-	        	subStr[2] = (String.valueOf(
-	        			((org.jfree.data.xy.XYDataItem)dataSet.getSeries(1).getItems().get(i)).getYValue()));
-	        	subStr[3] = (String.valueOf(ch1TentionRawDataList.get(i)));
-	        	subStr[4] = (String.valueOf(ch2TentionRawDataList.get(i)));
+	        int ch1_count = dataSet.getSeries(0).getItems().size();
+	        int ch2_count = dataSet.getSeries(1).getItems().size();
+	        subStr = new String[6];
+	        int index = 0;
+	        while( index < ch1_count || index < ch2_count) {
+	        	if( index < ch1_count ) {
+		        	subStr[0] = (String.valueOf(
+		        			((org.jfree.data.xy.XYDataItem)dataSet.getSeries(0).getItems().get(index)).getX()));
+		        	subStr[1] = (String.valueOf(
+		        			((org.jfree.data.xy.XYDataItem)dataSet.getSeries(0).getItems().get(index)).getYValue()));
+		        	subStr[2] = (String.valueOf(ch1TentionRawDataList.get(index)));
+	        	}else {
+	        		subStr[0] ="";
+	        		subStr[1] ="";
+	        		subStr[2] ="";
+	        	}
+
+	        	if( index < ch2_count ) {
+		        	subStr[3] = (String.valueOf(
+		        			((org.jfree.data.xy.XYDataItem)dataSet.getSeries(1).getItems().get(index)).getX()));
+		        	subStr[4] = (String.valueOf(
+		        			((org.jfree.data.xy.XYDataItem)dataSet.getSeries(1).getItems().get(index)).getYValue()));
+		        	subStr[5] = (String.valueOf(ch2TentionRawDataList.get(index)));
+	        	}else {
+	        		subStr[3] ="";
+	        		subStr[4] ="";
+	        		subStr[5] ="";
+
+	        	}
+	        	index++;
 	        	writer.writeNext(subStr);
 	        }
 

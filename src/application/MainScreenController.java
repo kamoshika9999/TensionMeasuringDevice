@@ -54,7 +54,9 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.media.AudioClip;
+import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
+import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -107,6 +109,8 @@ public class MainScreenController {
     private Label CH1movingaverageLB;//[settingMenu.movingAverageTime]秒間毎の移動平均
     @FXML
     private Label CH2movingaverageLB;//[settingMenu.movingAverageTime]秒間毎の移動平均
+    @FXML
+    private Circle blinkShape;//可動状態インジケーター
 
     //デバッグフラグ
     public static boolean debugFlg = false;
@@ -875,8 +879,13 @@ public class MainScreenController {
  	   	tentionMesure = new Runnable() {
 		@Override
  			public void run() {
+		    	if( blinkShape.getFill() != Color.YELLOW) {
+		    		Platform.runLater( () ->blinkShape.setFill(Color.YELLOW));
+		    	}else {
+		    		Platform.runLater( () ->blinkShape.setFill(Color.GREEN));
+		    	}
 				mesure();
-				if( mesureTreshFlg ) {//10gを超えていれば設備は動作中と判断
+				if( mesureTreshFlg ) {//30gを超えていれば設備は動作中と判断
 					lockedTimer = System.currentTimeMillis();
   			  	}
 				if( System.currentTimeMillis() - lockedTimer > lockedTimerThresh) {

@@ -6,6 +6,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.paint.LinearGradient?>
 <?import javafx.scene.paint.Stop?>
+<?import javafx.scene.shape.Circle?>
 <?import javafx.scene.shape.Line?>
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
@@ -60,8 +61,8 @@
                   <Font name="Arial" size="12.0" />
                </font>
             </Button>
-            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#21cdff" height="35.0" layoutX="91.0" layoutY="13.0" stroke="BLACK" strokeType="INSIDE" width="251.0" />
-            <Label layoutX="98.0" layoutY="19.0" maxHeight="20.0" maxWidth="129.0" minHeight="20.0" minWidth="129.0" prefHeight="20.0" prefWidth="129.0" text="ElapsedTime">
+            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#21cdff" height="35.0" layoutX="147.0" layoutY="13.0" stroke="BLACK" strokeType="INSIDE" width="251.0" />
+            <Label layoutX="154.0" layoutY="19.0" maxHeight="20.0" maxWidth="129.0" minHeight="20.0" minWidth="129.0" prefHeight="20.0" prefWidth="129.0" text="ElapsedTime">
                <font>
                   <Font name="Arial" size="14.0" />
                </font>
@@ -150,7 +151,7 @@
                   <Font name="Arial Bold" size="14.0" />
                </font>
             </Label>
-            <Label fx:id="mesureCntLB" layoutX="204.0" layoutY="19.0" maxHeight="17.0" maxWidth="156.0" minHeight="17.0" minWidth="80.0" prefHeight="17.0" prefWidth="129.0" text="--------------------" textAlignment="JUSTIFY">
+            <Label fx:id="mesureCntLB" layoutX="260.0" layoutY="19.0" maxHeight="17.0" maxWidth="156.0" minHeight="17.0" minWidth="80.0" prefHeight="17.0" prefWidth="129.0" text="--------------------" textAlignment="JUSTIFY">
                <font>
                   <Font name="Arial Bold" size="18.0" />
                </font>
@@ -205,6 +206,7 @@
                   <Font name="Arial" size="18.0" />
                </font>
             </Label>
+            <Circle fx:id="blinkShape" fill="DODGERBLUE" layoutX="130.0" layoutY="31.0" radius="13.0" stroke="BLACK" strokeType="INSIDE" />
          </children>
       </AnchorPane>
       <Label layoutX="349.0" layoutY="56.0" text="Raw">

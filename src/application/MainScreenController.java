@@ -173,7 +173,7 @@ public class MainScreenController {
 	long lockedTimerThresh = 3000;//3秒以上10ｇを越えなければ測定停止
 	//機器計測エラー数
 	public static int[] mesureErrCnt = new int[2];//計測エラーの回数。チャンネル毎にカウント
-	final int mesureErrCntTreth = 2000;//8Hの間にmesureErrCntが閾値を超えれば機器異常発生
+	final int mesureErrCntTreth = 5000;//8Hの間にmesureErrCntが閾値を超えれば機器異常発生
 	boolean mesureErrFlg = false;//機器異常が発生している場合true
 	//テンションエラーフラグ
 	boolean tentionErrFlg = false;//テンションが設定値を超えればtrue
@@ -286,13 +286,13 @@ public class MainScreenController {
         			}
 		        }
     		}
-    		//測定のレンジがhx[i].resolution * 10倍(10g)を超えていたら結果は-1になる
+    		//測定のレンジがhx[i].resolution * 15倍(15g)を超えていたら結果は-1になる
     		boolean[] flg = new boolean[2];
     		flg[0] = true;
     		flg[1] = true;
     		for(int i=0;i<2;i++) {
     			if( hx[i].calibrationWeight > 0 && enableCnt[i] > 0) {
-	    			if( maxValue[i] - minValue[i] > hx[i].resolution * 10) {
+	    			if( maxValue[i] - minValue[i] > hx[i].resolution * 15) {
 	    				flg[i]=false;
 	    				mesureErrCnt[i]++;//機器異常回数をプラスする
 	    				System.out.println("******************************");
@@ -508,7 +508,7 @@ public class MainScreenController {
 		    	Platform.runLater(() ->hxvalueLB5.setText("Error"));
 		    }
 
-	    	if( Math.abs(result[0][1]) > 10 || Math.abs(result[1][1]) > 10 ) {
+	    	if( Math.abs(result[0][1]) > 30 || Math.abs(result[1][1]) > 30 ) {
 	    		mesureTreshFlg = true;
 	    	}else {
 	    		mesureTreshFlg = false;

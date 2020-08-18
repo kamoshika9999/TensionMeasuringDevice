@@ -182,7 +182,7 @@ public class MainScreenController {
 	//テンションエラーフラグ
 	boolean tentionErrFlg = false;//テンションが設定値を超えればtrue
 	//スレッドオブジェクト
-	ScheduledExecutorService tr;//33msec毎に計測が実行される。そのオブジェクト
+	ScheduledExecutorService tr = Executors.newSingleThreadScheduledExecutor();//33msec毎に計測が実行される。そのオブジェクト
 	Runnable tentionMesure;//スケジューラーで呼び出されるオブジェクト
 
 	//メディアプレイヤー
@@ -340,20 +340,27 @@ public class MainScreenController {
     	}
 
     	//スレッド停止------------------
+    	if( tr != null ) {
+	    	try {
+				tr.shutdown();
+				if( tr.awaitTermination(30000, TimeUnit.MICROSECONDS) ) {
+					System.out.println("タスク終了失敗");
+				}
+			} catch(Exception e) {
+				System.out.println(e);
+			}
+    	}
+
+    	int waitCnt=0;
     	while(mesureFlg) {
     		try {
 				Thread.sleep(1);
-				System.out.print("Wait1");
+				System.out.print("Wait = " + waitCnt++);
 			} catch (InterruptedException e) {
 			e.printStackTrace();
 			}
     	}
-    	try {
-			tr.shutdown();
-			tr.awaitTermination(33, TimeUnit.MICROSECONDS);
-		} catch(Exception e) {
-			System.out.println(e);
-		}
+
     	//----------------------------------
 
     	FXMLLoader loader = new FXMLLoader(getClass().getResource("caliblation.fxml"));
@@ -381,7 +388,7 @@ public class MainScreenController {
     	}
 		//計測スレッド再開
 		tr = Executors.newSingleThreadScheduledExecutor();
-		tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
+		tr.scheduleAtFixedRate(tentionMesure, 300, 33, TimeUnit.MILLISECONDS);
 
     	//チャートレンジ、上限下限線描画
     	chartLineRangeSetting();
@@ -424,20 +431,24 @@ public class MainScreenController {
     	resetExFlg = true;
 
     	//計測スレッド停止
-    	while(mesureFlg) {
-    		try {
-				Thread.sleep(1);
-				System.out.print("Wait1");
-			} catch (InterruptedException e) {
-			e.printStackTrace();
-			}
-    	}
     	if( tr != null ) {
 	    	try {
 				tr.shutdown();
-				tr.awaitTermination(33, TimeUnit.MICROSECONDS);
+				if( tr.awaitTermination(30000, TimeUnit.MICROSECONDS) ) {
+					System.out.println("タスク終了失敗");
+				}
 			} catch(Exception e) {
 				System.out.println(e);
+			}
+    	}
+
+    	int waitCnt=0;
+    	while(mesureFlg) {
+    		try {
+				Thread.sleep(1);
+				System.out.print("Wait = " + waitCnt++);
+			} catch (InterruptedException e) {
+			e.printStackTrace();
 			}
     	}
 
@@ -513,16 +524,8 @@ public class MainScreenController {
     	chartLineRangeSetting();
 
 		//計測スレッド再開
-    	while(mesureFlg) {
-    		try {
-				Thread.sleep(1);
-				System.out.print("...Wait2");
-			} catch (InterruptedException e) {
-			e.printStackTrace();
-			}
-    	}
 		tr = Executors.newSingleThreadScheduledExecutor();
-		tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
+		tr.scheduleAtFixedRate(tentionMesure, 300, 33, TimeUnit.MILLISECONDS);
 		System.out.println("Reset!!");
     	resetExFlg = false;
     }
@@ -816,20 +819,26 @@ public class MainScreenController {
     	}
 
     	//スレッド停止------------------
+    	if( tr != null ) {
+	    	try {
+				tr.shutdown();
+				if( tr.awaitTermination(30000, TimeUnit.MICROSECONDS) ) {
+					System.out.println("タスク終了失敗");
+				}
+			} catch(Exception e) {
+				System.out.println(e);
+			}
+    	}
+
+    	int waitCnt=0;
     	while(mesureFlg) {
     		try {
 				Thread.sleep(1);
-				System.out.print("Wait1");
+				System.out.print("Wait = " + waitCnt++);
 			} catch (InterruptedException e) {
 			e.printStackTrace();
 			}
     	}
-    	try {
-			tr.shutdown();
-			tr.awaitTermination(33, TimeUnit.MICROSECONDS);
-		} catch(Exception e) {
-			System.out.println(e);
-		}
     	//-------------------------------
 
     	FXMLLoader loader = new FXMLLoader(getClass().getResource("settingMenu.fxml"));
@@ -854,7 +863,7 @@ public class MainScreenController {
     	chartLineRangeSetting();
 
 		tr = Executors.newSingleThreadScheduledExecutor();
-		tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
+		tr.scheduleAtFixedRate(tentionMesure, 300, 33, TimeUnit.MILLISECONDS);
 
 		settingExFlg = false;
     }
@@ -973,9 +982,6 @@ public class MainScreenController {
 
  	   	startTime = new Timestamp(System.currentTimeMillis());//メソッド内でnullを避けるため
  	   	mesureStopFlg = true;
-
- 	   	//tr = Executors.newSingleThreadScheduledExecutor();
- 	   	//tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
 
  	   	//測定データリセット実行
         onResetBT(null);

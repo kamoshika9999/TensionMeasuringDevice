@@ -182,7 +182,7 @@ public class MainScreenController {
 	//テンションエラーフラグ
 	boolean tentionErrFlg = false;//テンションが設定値を超えればtrue
 	//スレッドオブジェクト
-	ScheduledExecutorService tr = Executors.newSingleThreadScheduledExecutor();//33msec毎に計測が実行される。そのオブジェクト
+	ScheduledExecutorService tr;//33msec毎に計測が実行される。そのオブジェクト
 	Runnable tentionMesure;//スケジューラーで呼び出されるオブジェクト
 
 	//メディアプレイヤー

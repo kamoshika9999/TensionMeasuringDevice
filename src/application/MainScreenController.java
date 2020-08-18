@@ -414,6 +414,16 @@ public class MainScreenController {
     	if( resetExFlg ) return;
     	resetExFlg = true;
 
+    	//計測スレッド停止
+    	if( tr != null ) {
+	    	try {
+				tr.shutdown();
+				tr.awaitTermination(33, TimeUnit.MICROSECONDS);
+			} catch(Exception e) {
+				System.out.println(e);
+			}
+    	}
+
     	try {
     	//約60秒未満は保存しない
     	if(startTime !=null) {//startTimeオブジェクトがnullの時は実行しない
@@ -484,6 +494,10 @@ public class MainScreenController {
 
     	//チャートレンジ、上限下限線描画
     	chartLineRangeSetting();
+
+		//計測スレッド再開
+		tr = Executors.newSingleThreadScheduledExecutor();
+		tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
 
     	resetExFlg = false;
     }
@@ -854,8 +868,6 @@ public class MainScreenController {
 	    	hx[i].resolution = CaliblationController.resolution[i];
     	}
 
-        //測定データリセット実行
-        onResetBT(null);
 
         //メディアプレイヤー準備
         //wavファイルはjarと同一フォルダに置くこと
@@ -928,6 +940,9 @@ public class MainScreenController {
  	   	mesureStopFlg = true;
  	   	tr = Executors.newSingleThreadScheduledExecutor();
  	   	tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
+
+ 	   	//測定データリセット実行
+        onResetBT(null);
 
     }
 

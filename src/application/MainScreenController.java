@@ -726,12 +726,12 @@ public class MainScreenController {
 		    	}
 	    	}else{
 	    		if( hx[0].calibrationWeight > 0 ) {
-			    	Platform.runLater(() ->hxvalueLB1.setText(String.format("%.0f",0.0)));
-			    	Platform.runLater(() ->hxvalueLB2.setText(String.format("%.0f",0.0)));
+			    	//Platform.runLater(() ->hxvalueLB1.setText(String.format("%.0f",0.0)));
+			    	//Platform.runLater(() ->hxvalueLB2.setText(String.format("%.0f",0.0)));
 	    		}
 	    		if( hx[1].calibrationWeight > 0 ) {
-			    	Platform.runLater(() ->hxvalueLB4.setText(String.format("%.0f",0.0)));
-			    	Platform.runLater(() ->hxvalueLB5.setText(String.format("%.0f",0.0)));
+			    	//Platform.runLater(() ->hxvalueLB4.setText(String.format("%.0f",0.0)));
+			    	//Platform.runLater(() ->hxvalueLB5.setText(String.format("%.0f",0.0)));
 	    		}
 		    	Platform.runLater(() ->infoLB.setText("Mesure Stop"));
 	    	}

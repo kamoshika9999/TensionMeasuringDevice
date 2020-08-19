@@ -207,6 +207,26 @@
                </font>
             </Label>
             <Circle fx:id="blinkShape" fill="DODGERBLUE" layoutX="130.0" layoutY="31.0" radius="13.0" stroke="BLACK" strokeType="INSIDE" />
+            <Label layoutX="528.0" layoutY="96.0" prefHeight="17.0" prefWidth="103.0" text="MesureErrorCount2">
+               <font>
+                  <Font name="Arial" size="10.0" />
+               </font>
+            </Label>
+            <Label fx:id="ch1ErrCnt2LB" layoutX="528.0" layoutY="111.0" prefHeight="17.0" prefWidth="87.0" text="----" textAlignment="RIGHT">
+               <font>
+                  <Font name="Arial" size="12.0" />
+               </font>
+            </Label>
+            <Label layoutX="528.0" layoutY="175.0" prefHeight="17.0" prefWidth="103.0" text="MesureErrorCount2">
+               <font>
+                  <Font name="Arial" size="10.0" />
+               </font>
+            </Label>
+            <Label fx:id="ch2ErrCnt2LB" layoutX="528.0" layoutY="190.0" prefHeight="17.0" prefWidth="87.0" text="----" textAlignment="RIGHT">
+               <font>
+                  <Font name="Arial" size="12.0" />
+               </font>
+            </Label>
          </children>
       </AnchorPane>
       <Label layoutX="349.0" layoutY="56.0" text="Raw">

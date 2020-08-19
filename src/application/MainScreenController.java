@@ -111,6 +111,11 @@ public class MainScreenController {
     private Label CH2movingaverageLB;//[settingMenu.movingAverageTime]秒間毎の移動平均
     @FXML
     private Circle blinkShape;//可動状態インジケーター
+    @FXML
+    private Label ch1ErrCnt2LB;//3回の測定のレンジが10ｇ超えていればカウントアップ
+    @FXML
+    private Label ch2ErrCnt2LB;//3回の測定のレンジが10ｇ超えていればカウントアップ
+
 
     //デバッグフラグ
     public static boolean debugFlg = false;
@@ -176,9 +181,14 @@ public class MainScreenController {
     long lockedTimer =System.currentTimeMillis();//測定を継続するかの判定用のタイマ
 	long lockedTimerThresh = 3000;//3秒以上10ｇを越えなければ測定停止
 	//機器計測エラー数
-	public static int[] mesureErrCnt = new int[2];//計測エラーの回数。チャンネル毎にカウント
-	final int mesureErrCntTreth = 5000;//8Hの間にmesureErrCntが閾値を超えれば機器異常発生
+	public static int[] mesureErrCnt = new int[2];//機器異常の回数。チャンネル毎にカウント
+	final int mesureErrCntTreth = 2000;//8Hの間にmesureErrCntが閾値を超えれば機器異常発生
 	boolean mesureErrFlg = false;//機器異常が発生している場合true
+
+	public static int[] mesureErrCnt2 = new int[2];//計測差異常の回数。チャンネル毎にカウント
+	final int mesureErrCntTreth2 = 50000;
+	boolean mesureErrFlg2 = false;//計測差異常が発生している場合true
+
 	//テンションエラーフラグ
 	boolean tentionErrFlg = false;//テンションが設定値を超えればtrue
 	//スレッドオブジェクト
@@ -298,7 +308,7 @@ public class MainScreenController {
     			if( hx[i].calibrationWeight > 0 && enableCnt[i] > 0) {
 	    			if( maxValue[i] - minValue[i] > hx[i].resolution * 15) {
 	    				flg[i]=false;
-	    				mesureErrCnt[i]++;//機器異常回数をプラスする
+	    				mesureErrCnt2[i]++;//測定異常回数をプラスする
 	    				System.out.println("******************************");
 	    				System.out.println("MesureOver " + (hx[i].resolution * 10) + "="+(maxValue[i] - minValue[i]));
 	    				for(int j=0;j<rpeetCnt;j++) {
@@ -508,6 +518,8 @@ public class MainScreenController {
 			mesureErrFlg = false;
 	        for(int i=0;i<2;i++) {
 	        	mesureErrCnt[i] = 0;
+	        	mesureErrCnt2[i] = 0;
+
 	        }
 	        tentionErrFlg = false;
 	        //メディアプレイヤー再生強制停止
@@ -797,9 +809,12 @@ public class MainScreenController {
     		}
     		if( hx[0].calibrationWeight > 0 ) {
     			Platform.runLater(() ->ch1ErrCntLB.setText(String.valueOf( mesureErrCnt[0] )));
+    			Platform.runLater(() ->ch1ErrCnt2LB.setText(String.valueOf( mesureErrCnt2[0] )));
+
     		}
     		if( hx[1].calibrationWeight > 0 ) {
     			Platform.runLater(() ->ch2ErrCntLB.setText(String.valueOf( mesureErrCnt[1] )));
+    			Platform.runLater(() ->ch2ErrCnt2LB.setText(String.valueOf( mesureErrCnt2[1] )));
     		}
     }
 
@@ -977,6 +992,8 @@ public class MainScreenController {
  	   	Platform.runLater(() ->ch2MinLB.setAlignment(Pos.CENTER_RIGHT));
  	   	Platform.runLater(() ->ch1ErrCntLB.setAlignment(Pos.CENTER_RIGHT));
  	   	Platform.runLater(() ->ch2ErrCntLB.setAlignment(Pos.CENTER_RIGHT));
+ 	   	Platform.runLater(() ->ch1ErrCnt2LB.setAlignment(Pos.CENTER_RIGHT));
+ 	   	Platform.runLater(() ->ch2ErrCnt2LB.setAlignment(Pos.CENTER_RIGHT));
  	   	Platform.runLater(() ->CH1movingaverageLB.setAlignment(Pos.CENTER_RIGHT));
  	   	Platform.runLater(() ->CH2movingaverageLB.setAlignment(Pos.CENTER_RIGHT));
 

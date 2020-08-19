@@ -37,12 +37,12 @@
             <Font name="Arial" size="18.0" />
          </font>
       </TextField>
-      <Label layoutX="37.0" layoutY="88.0" prefHeight="35.0" prefWidth="117.0" text="MAX Tention">
+      <Label layoutX="37.0" layoutY="88.0" prefHeight="35.0" prefWidth="117.0" text="MAX Tension">
          <font>
             <Font name="Arial" size="14.0" />
          </font>
       </Label>
-      <Label layoutX="37.0" layoutY="130.0" prefHeight="35.0" prefWidth="117.0" text="MIN Tention">
+      <Label layoutX="37.0" layoutY="130.0" prefHeight="35.0" prefWidth="117.0" text="MIN Tension">
          <font>
             <Font name="Arial" size="14.0" />
          </font>
@@ -88,12 +88,12 @@
             <Font name="Arial Bold" size="14.0" />
          </font>
       </Label>
-      <Label fx:id="ch1MaxWarning" layoutX="364.0" layoutY="88.0" prefHeight="35.0" prefWidth="130.0" text="Max Tention * Ratio">
+      <Label fx:id="ch1MaxWarning" layoutX="364.0" layoutY="88.0" prefHeight="35.0" prefWidth="130.0" text="Max Tension * Ratio">
          <font>
             <Font name="Arial" size="14.0" />
          </font>
       </Label>
-      <Label fx:id="ch1MinWarning" layoutX="364.0" layoutY="130.0" prefHeight="35.0" prefWidth="130.0" text="Min Tention * Ratio">
+      <Label fx:id="ch1MinWarning" layoutX="364.0" layoutY="130.0" prefHeight="35.0" prefWidth="130.0" text="Min Tension * Ratio">
          <font>
             <Font name="Arial" size="14.0" />
          </font>
@@ -103,22 +103,22 @@
             <Font name="Arial Bold" size="14.0" />
          </font>
       </Label>
-      <Label fx:id="ch2MaxWarning" layoutX="364.0" layoutY="277.0" prefHeight="35.0" prefWidth="130.0" text="MIax Tention * Ratio">
+      <Label fx:id="ch2MaxWarning" layoutX="364.0" layoutY="277.0" prefHeight="35.0" prefWidth="130.0" text="MIax Tension * Ratio">
          <font>
             <Font name="Arial" size="14.0" />
          </font>
       </Label>
-      <Label fx:id="ch2MinWarning" layoutX="364.0" layoutY="319.0" prefHeight="35.0" prefWidth="130.0" text="Min Tention * Ratio">
+      <Label fx:id="ch2MinWarning" layoutX="364.0" layoutY="319.0" prefHeight="35.0" prefWidth="130.0" text="Min Tension * Ratio">
          <font>
             <Font name="Arial" size="14.0" />
          </font>
       </Label>
-      <Label layoutX="37.0" layoutY="278.0" prefHeight="35.0" prefWidth="117.0" text="MAX Tention">
+      <Label layoutX="37.0" layoutY="278.0" prefHeight="35.0" prefWidth="117.0" text="MAX Tension">
          <font>
             <Font name="Arial" size="14.0" />
          </font>
       </Label>
-      <Label layoutX="37.0" layoutY="320.0" prefHeight="35.0" prefWidth="117.0" text="MIN Tention">
+      <Label layoutX="37.0" layoutY="320.0" prefHeight="35.0" prefWidth="117.0" text="MIN Tension">
          <font>
             <Font name="Arial" size="14.0" />
          </font>

@@ -156,15 +156,15 @@ public class MainScreenController {
     static HX711[] hx = new HX711[2];
 
     //チャートオブジェクト
-    JFreeChart chart_tention;
+    JFreeChart chart_tension;
     //チャート用データーセット
-    XYSeriesCollection tention_dataset;
+    XYSeriesCollection tension_dataset;
 
     //測定データー
     List<Double> ch1MovingaverageTimeList = new ArrayList<Double>();//チャートのデータセットはデータ格納にラグが生じる為、読み出し時に不整合が出る
     List<Double> ch2MovingaverageTimeList = new ArrayList<Double>();//チャートのデータセットはデータ格納にラグが生じる為、読み出し時に不整合が出る
-    List<Double> ch1TentionRawDataList = new ArrayList<Double>();//ラグを防止する為にデータ追加時にPlatform.runLater(() ->を
-    List<Double> ch2TentionRawDataList = new ArrayList<Double>();//つけないと例外が発生する。非効率だが、UIと切り離されたオブジェクトで対応する
+    List<Double> ch1TensionRawDataList = new ArrayList<Double>();//ラグを防止する為にデータ追加時にPlatform.runLater(() ->を
+    List<Double> ch2TensionRawDataList = new ArrayList<Double>();//つけないと例外が発生する。非効率だが、UIと切り離されたオブジェクトで対応する
     double ch1_ave;
     double ch1_max;
     double ch1_min;
@@ -190,10 +190,10 @@ public class MainScreenController {
 	boolean mesureErrFlg2 = false;//計測差異常が発生している場合true
 
 	//テンションエラーフラグ
-	boolean tentionErrFlg = false;//テンションが設定値を超えればtrue
+	boolean tensionErrFlg = false;//テンションが設定値を超えればtrue
 	//スレッドオブジェクト
 	ScheduledExecutorService tr;//33msec毎に計測が実行される。そのオブジェクト
-	Runnable tentionMesure;//スケジューラーで呼び出されるオブジェクト
+	Runnable tensionMesure;//スケジューラーで呼び出されるオブジェクト
 
 	//メディアプレイヤー
 	AudioClip mp_error;
@@ -328,7 +328,7 @@ public class MainScreenController {
 	    		}
     		}
     	}catch(Exception e) {
-    		System.out.println(e);
+    		System.out.println(e+"position004");
     	}
     	mesureFlg = false;
      	return result;
@@ -357,7 +357,7 @@ public class MainScreenController {
 					System.out.println("タスク終了失敗");
 				}
 			} catch(Exception e) {
-				System.out.println(e);
+				System.out.println(e+"position005");
 			}
     	}
 
@@ -398,7 +398,7 @@ public class MainScreenController {
     	}
 		//計測スレッド再開
 		tr = Executors.newSingleThreadScheduledExecutor();
-		tr.scheduleAtFixedRate(tentionMesure, 300, 33, TimeUnit.MILLISECONDS);
+		tr.scheduleAtFixedRate(tensionMesure, 5000, 33, TimeUnit.MILLISECONDS);
 
     	//チャートレンジ、上限下限線描画
     	chartLineRangeSetting();
@@ -448,7 +448,7 @@ public class MainScreenController {
 					System.out.println("タスク終了失敗");
 				}
 			} catch(Exception e) {
-				System.out.println(e);
+				System.out.println(e+"position006");
 			}
     	}
 
@@ -467,7 +467,7 @@ public class MainScreenController {
     	if(startTime !=null) {//startTimeオブジェクトがnullの時は実行しない
 	    	if( System.currentTimeMillis() - startTime.getTime() > 60*1000 ) {
 				if( !csvSaveLoad.saveDataSet(
-						ch1TentionRawDataList,ch2TentionRawDataList,tention_dataset,
+						ch1TensionRawDataList,ch2TensionRawDataList,tension_dataset,
 						startTime,ch1_max,ch1_min,ch1_ave,ch2_max,ch2_min,ch2_ave,ch_ShotCnt,shotCnt) ) {
 					System.out.println("データーセット保存異常");
 					Platform.runLater( () ->this.infoLB.setText("データーセット保存異常"));
@@ -486,11 +486,11 @@ public class MainScreenController {
         ch_ShotCnt[1] = 0;
 
 		//チャート用データーセットリセット
-		Platform.runLater( () ->tention_dataset.getSeries(0).clear());
-		Platform.runLater( () ->tention_dataset.getSeries(1).clear());
+		Platform.runLater( () ->tension_dataset.getSeries(0).clear());
+		Platform.runLater( () ->tension_dataset.getSeries(1).clear());
 		Platform.runLater( () ->mesureCntLB.setText("----------"));
-		ch1TentionRawDataList.clear();
-		ch2TentionRawDataList.clear();
+		ch1TensionRawDataList.clear();
+		ch2TensionRawDataList.clear();
 		ch1MovingaverageTimeList.clear();
 		ch2MovingaverageTimeList.clear();
 
@@ -521,7 +521,7 @@ public class MainScreenController {
 	        	mesureErrCnt2[i] = 0;
 
 	        }
-	        tentionErrFlg = false;
+	        tensionErrFlg = false;
 	        //メディアプレイヤー再生強制停止
 			if( mp_error != null ) mp_error.stop();
 			if( mp_error2 != null ) mp_error2.stop();
@@ -529,7 +529,7 @@ public class MainScreenController {
 
 		startTime = new Timestamp(System.currentTimeMillis());
     	}catch(Exception e) {
-    		System.out.println(e);
+    		System.out.println(e +" position001");
     	}
 
     	//チャートレンジ、上限下限線描画
@@ -537,7 +537,7 @@ public class MainScreenController {
 
 		//計測スレッド再開
 		tr = Executors.newSingleThreadScheduledExecutor();
-		tr.scheduleAtFixedRate(tentionMesure, 300, 33, TimeUnit.MILLISECONDS);
+		tr.scheduleAtFixedRate(tensionMesure, 1000, 33, TimeUnit.MILLISECONDS);
 		System.out.println("Reset!!");
     	resetExFlg = false;
     }
@@ -547,7 +547,7 @@ public class MainScreenController {
      */
     private void mesure() {
     		final int disableTime = 60;//判定、最大値、最小値の更新無効タイマ
-
+    		
     		if(mesureFlg) return;//別スレッドから同時複数呼び出しを無効にする
 
 	    	double[][] result = getLoadCellValue();
@@ -594,8 +594,8 @@ public class MainScreenController {
 			    		movingaverageFlg=false;
 			    		while( !movingaverageFlg ) {
 				    		tmpTime = ch1MovingaverageTimeList.get( chartDataIndex );
-				    		if( result[0][0] > 0 && ch1TentionRawDataList.get( chartDataIndex ) > 0) {
-				    			movingaverage[0] += ch1TentionRawDataList.get( chartDataIndex );
+				    		if( result[0][0] > 0 && ch1TensionRawDataList.get( chartDataIndex ) > 0) {
+				    			movingaverage[0] += ch1TensionRawDataList.get( chartDataIndex );
 				    			tmpCnt++;
 				    		}
 				    		if( tmpTime > chartTime/1000.0 - movingaverageTime && chartDataIndex > 0) {
@@ -616,10 +616,10 @@ public class MainScreenController {
 		    		if( result[0][0] != -1) {
 	    				ch1_ave +=  movingaverage[0];
 				    	ch1MovingaverageTimeList.add(chartTime/1000.0);
-			    		ch1TentionRawDataList.add(result[0][1]);//生データを格納
+			    		ch1TensionRawDataList.add(result[0][1]);//生データを格納
 
 			    		//データーセットは表示の都合でDouble値で格納する
-			    		Platform.runLater( () ->tention_dataset.getSeries(0).add((double)chartTime/1000.0,movingaverage[0]));
+			    		Platform.runLater( () ->tension_dataset.getSeries(0).add((double)chartTime/1000.0,movingaverage[0]));
 
 			    		//テンションの最大値、最小値、平均を更新
 			    		if( chartTime/1000 > disableTime) {
@@ -636,8 +636,8 @@ public class MainScreenController {
 			    		movingaverageFlg=false;
 			    		while( !movingaverageFlg ) {
 				    		tmpTime = ch2MovingaverageTimeList.get( chartDataIndex );
-				    		if( result[1][0] > 0 && ch2TentionRawDataList.get( chartDataIndex ) > 0) {
-				    			movingaverage[1] += ch2TentionRawDataList.get( chartDataIndex );
+				    		if( result[1][0] > 0 && ch2TensionRawDataList.get( chartDataIndex ) > 0) {
+				    			movingaverage[1] += ch2TensionRawDataList.get( chartDataIndex );
 				    			tmpCnt++;
 				    		}
 				    		if( tmpTime > chartTime/1000.0 - movingaverageTime && chartDataIndex > 0) {
@@ -658,10 +658,10 @@ public class MainScreenController {
 		    		if( result[1][0] != -1) {
 	    				ch2_ave +=  movingaverage[1];
 				    	ch2MovingaverageTimeList.add(chartTime/1000.0);
-			    		ch2TentionRawDataList.add(result[1][1]);//生データを格納
+			    		ch2TensionRawDataList.add(result[1][1]);//生データを格納
 
 			    		//データーセットは表示の都合でDouble値で格納する
-			    		Platform.runLater( () ->tention_dataset.getSeries(1).add((double)chartTime/1000.0, movingaverage[1]));
+			    		Platform.runLater( () ->tension_dataset.getSeries(1).add((double)chartTime/1000.0, movingaverage[1]));
 
 			    		//テンションの最大値、最小値、平均を更新
 			    		if( chartTime/1000 > disableTime) {
@@ -698,7 +698,7 @@ public class MainScreenController {
 
 
 		    		}catch(Exception e) {
-		    			System.out.println(e);
+		    			System.out.println(e + "position002");
 		    		}
 		    		//移動平均表示
 		    		if( hx[0].calibrationWeight > 0 && result[0][0] > 0) {
@@ -751,7 +751,7 @@ public class MainScreenController {
 		    			Platform.runLater(() ->judgmentLB.setText("NG"));
 		    			//計測開始から一定時間経過後かつ10gを超えている場合のみエラーフラグをたてる
 		    			if( System.currentTimeMillis()-startTime.getTime()>disableTime*1000  && mesureTreshFlg) {
-		    				tentionErrFlg = true;
+		    				tensionErrFlg = true;
 		    			}
 		    		}
 
@@ -765,7 +765,7 @@ public class MainScreenController {
 
 		    		//データーセットはdouble値 チャート表示は整数とする為、変換表示させる
 		    		try {
-			    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getDomainAxis()).
+			    		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tension.getPlot()).getDomainAxis()).
 								setRange( (chartTime/1000)<=settingMenu.graphXaxisTime ? 0.0 :
 										(chartTime/1000)-settingMenu.graphXaxisTime,
 										chartTime/1000<1.0?1.0:(chartTime/1000)));
@@ -790,7 +790,7 @@ public class MainScreenController {
 		    	Platform.runLater(() ->infoLB.setText("Mesure Stop"));
 	    	}
 	    	//テンション異常
-	    	if( tentionErrFlg ) {
+	    	if( tensionErrFlg ) {
     			if( !mp_error.isPlaying() && !mesureErrFlg) {
 	    			mp_error.play();
     			}
@@ -841,7 +841,7 @@ public class MainScreenController {
 					System.out.println("タスク終了失敗");
 				}
 			} catch(Exception e) {
-				System.out.println(e);
+				System.out.println(e+"position003");
 			}
     	}
 
@@ -878,7 +878,7 @@ public class MainScreenController {
     	chartLineRangeSetting();
 
 		tr = Executors.newSingleThreadScheduledExecutor();
-		tr.scheduleAtFixedRate(tentionMesure, 300, 33, TimeUnit.MILLISECONDS);
+		tr.scheduleAtFixedRate(tensionMesure, 5000, 33, TimeUnit.MILLISECONDS);
 
 		settingExFlg = false;
     }
@@ -944,10 +944,10 @@ public class MainScreenController {
 		mp_error3 = new AudioClip(new File(filePath).toURI().toString());//機器異常
 
         //チャートオブジェクト作成
-		chart_tention = chartFact();
+		chart_tension = chartFact();
 
 		//自動計測用スレッド
- 	   	tentionMesure = new Runnable() {
+ 	   	tensionMesure = new Runnable() {
 		@Override
  			public void run() {
 		    	if( blinkShape.getFill() != Color.YELLOW) {
@@ -1009,10 +1009,10 @@ public class MainScreenController {
      * チャートのレンジと上限下限線を描画
      */
     private void chartLineRangeSetting() {
-    	if(chart_tention == null) return;
+    	if(chart_tension == null) return;
 
         // 上限線、下限線を引く
-		XYPlot xyPlot = chart_tention.getXYPlot();
+		XYPlot xyPlot = chart_tension.getXYPlot();
 		xyPlot.clearRangeMarkers();
 		float dash [] = {4f, 5f};
 		Stroke dashed = new BasicStroke(2f,
@@ -1032,7 +1032,7 @@ public class MainScreenController {
 		xyPlot.addRangeMarker(marker);
 
 		//グラフレンジの設定
-		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tention.getPlot()).getRangeAxis()).
+		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tension.getPlot()).getRangeAxis()).
 				setRange(settingMenu.minErrorValue[0]-15.0,settingMenu.maxErrorValue[0]+15.0));
 
     }
@@ -1041,9 +1041,9 @@ public class MainScreenController {
      * @return
      */
     private JFreeChart chartFact() {
-    	XYSeriesCollection tentionDataSet;
-		tentionDataSet = getChartData();
-		JFreeChart chart = createInitChart("TentionRealTimeMonitor","(g)","ElapsedTime(sec)",tentionDataSet ,30,100);
+    	XYSeriesCollection tensionDataSet;
+		tensionDataSet = getChartData();
+		JFreeChart chart = createInitChart("TensionRealTimeMonitor","(g)","ElapsedTime(sec)",tensionDataSet ,30,100);
 		ChartViewer chV = new ChartViewer(chart);
         chV.addChartMouseListener( new ChartMouseListenerFX() {
 				@Override
@@ -1137,14 +1137,14 @@ public class MainScreenController {
         return chart;
     }
     private XYSeriesCollection getChartData(){
-        tention_dataset = new XYSeriesCollection();
+        tension_dataset = new XYSeriesCollection();
         XYSeries ch1_series = new XYSeries("CH1");
-        tention_dataset.addSeries(ch1_series);
+        tension_dataset.addSeries(ch1_series);
 
         XYSeries ch2_series = new XYSeries("CH2");
-        tention_dataset.addSeries(ch2_series);
+        tension_dataset.addSeries(ch2_series);
 
-        return tention_dataset;
+        return tension_dataset;
     }
 
 }

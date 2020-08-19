@@ -190,7 +190,7 @@ public class csvSaveLoad {
 
 	//データーセットを保存する
 	public static boolean saveDataSet(
-			List<Double> ch1TentionRawDataList, List<Double> ch2TentionRawDataList,
+			List<Double> ch1TensionRawDataList, List<Double> ch2TensionRawDataList,
 			XYSeriesCollection dataSet,Timestamp startTime,
 			double ch1_max, double ch1_min, double ch1_ave,
 			double ch2_max, double ch2_min, double ch2_ave, int[] shotCnt,int mesureCnt) {
@@ -201,13 +201,13 @@ public class csvSaveLoad {
 
         CSVWriter writer;
 		try {
-			File folder = new File( MyUtil.getJarFolder() + "tentionlog");
+			File folder = new File( MyUtil.getJarFolder() + "tensionlog");
 	    	if( !folder.exists()) {
 	    		if( !folder.mkdir() ) {
-	    			System.out.println("tentionlogフォルダ作成失敗");
+	    			System.out.println("tensionlogフォルダ作成失敗");
 	    		}
 	    	}
-	    	writer = new CSVWriter(new FileWriter( MyUtil.getJarFolder() + "tentionlog/"+StartDate + "---" + EndDate + ".csv"));
+	    	writer = new CSVWriter(new FileWriter( MyUtil.getJarFolder() + "tensionlog/"+StartDate + "---" + EndDate + ".csv"));
 
 			//キャリブレーションデーター
 			writer.writeNext(new String[] { "[CalibrationData]" });
@@ -321,12 +321,12 @@ public class csvSaveLoad {
 			writer.writeNext(new String[] { "[RawData]" });
         	headStr = new String[6];
     		headStr[0]="Ch1 ElapsedTime(sec)";
-    		headStr[1]="CH1 tention(g)";
-    		headStr[2]="CH1 RawTention(g)";
+    		headStr[1]="CH1 tension(g)";
+    		headStr[2]="CH1 RawTension(g)";
 
     		headStr[3]="Ch2 ElapsedTime(sec)";
-    		headStr[4]="CH2 tention(g)";
-    		headStr[5]="CH2 RawTention(g)";
+    		headStr[4]="CH2 tension(g)";
+    		headStr[5]="CH2 RawTension(g)";
 	        writer.writeNext(headStr);  //ヘッダー書き込み
 
 	        int ch1_count = dataSet.getSeries(0).getItems().size();
@@ -339,7 +339,7 @@ public class csvSaveLoad {
 		        			((org.jfree.data.xy.XYDataItem)dataSet.getSeries(0).getItems().get(index)).getX()));
 		        	subStr[1] = (String.valueOf(
 		        			((org.jfree.data.xy.XYDataItem)dataSet.getSeries(0).getItems().get(index)).getYValue()));
-		        	subStr[2] = (String.valueOf(ch1TentionRawDataList.get(index)));
+		        	subStr[2] = (String.valueOf(ch1TensionRawDataList.get(index)));
 	        	}else {
 	        		subStr[0] ="";
 	        		subStr[1] ="";
@@ -351,7 +351,7 @@ public class csvSaveLoad {
 		        			((org.jfree.data.xy.XYDataItem)dataSet.getSeries(1).getItems().get(index)).getX()));
 		        	subStr[4] = (String.valueOf(
 		        			((org.jfree.data.xy.XYDataItem)dataSet.getSeries(1).getItems().get(index)).getYValue()));
-		        	subStr[5] = (String.valueOf(ch2TentionRawDataList.get(index)));
+		        	subStr[5] = (String.valueOf(ch2TensionRawDataList.get(index)));
 	        	}else {
 	        		subStr[3] ="";
 	        		subStr[4] ="";

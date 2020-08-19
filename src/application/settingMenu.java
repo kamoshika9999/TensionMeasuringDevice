@@ -75,7 +75,7 @@ public class settingMenu {
 
 	//スレッドオブジェクト
 	ScheduledExecutorService tr;
-	Runnable tentionMesure;
+	Runnable tensionMesure;
 
     //設定値 CSVファイルに保存される値---------------------------------------------------------------------------------
     public static double[] ratioValue = new double[2];//警告の比率 例)ch1MaxErroValue-(ch1MaxErroValue*ch1RatioValue)=上限警告
@@ -161,7 +161,7 @@ public class settingMenu {
        		//テキストの値が不正の場合
        		Platform.runLater(() ->infoLB.setText("入力された値が不正です"));
        		tr = Executors.newSingleThreadScheduledExecutor();
-       		tr.scheduleAtFixedRate(tentionMesure, 0, 100, TimeUnit.MILLISECONDS);
+       		tr.scheduleAtFixedRate(tensionMesure, 0, 100, TimeUnit.MILLISECONDS);
        		savingFlg =false;
        		return;
        	}
@@ -169,7 +169,7 @@ public class settingMenu {
     	if( !csvSaveLoad.settingValueSave() ) {
        		Platform.runLater(() ->infoLB.setText("保存に失敗しました"));
        		tr = Executors.newSingleThreadScheduledExecutor();
-       		tr.scheduleAtFixedRate(tentionMesure, 0, 100, TimeUnit.MILLISECONDS);
+       		tr.scheduleAtFixedRate(tensionMesure, 0, 100, TimeUnit.MILLISECONDS);
        		savingFlg =false;
       		return;
     	}
@@ -208,7 +208,7 @@ public class settingMenu {
     	Platform.runLater(() ->graphXaxisTimeTX.setText(String.valueOf(graphXaxisTime)));
 
     	//風袋測定用スレッド
-    	tentionMesure = new Runnable() {
+    	tensionMesure = new Runnable() {
 			@Override
   	 		   public void run() {
   				  if( !MainScreenController.mesureFlg ) {
@@ -229,6 +229,6 @@ public class settingMenu {
   	 	   };
   	 	   Platform.runLater(() ->infoLB.setText(""));
   	 	   tr = Executors.newSingleThreadScheduledExecutor();
-  	 	   tr.scheduleAtFixedRate(tentionMesure, 0, 33, TimeUnit.MILLISECONDS);
+  	 	   tr.scheduleAtFixedRate(tensionMesure, 0, 33, TimeUnit.MILLISECONDS);
     }
 }

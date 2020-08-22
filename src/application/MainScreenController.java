@@ -537,7 +537,7 @@ public class MainScreenController {
 
 		//計測スレッド再開
 		tr = Executors.newSingleThreadScheduledExecutor();
-		tr.scheduleAtFixedRate(tensionMesure, 1000, 33, TimeUnit.MILLISECONDS);
+		tr.scheduleAtFixedRate(tensionMesure, 2000, 33, TimeUnit.MILLISECONDS);
 		System.out.println("Reset!!");
     	resetExFlg = false;
     }
@@ -547,8 +547,10 @@ public class MainScreenController {
      */
     private void mesure() {
     		final int disableTime = 60;//判定、最大値、最小値の更新無効タイマ
-    		
-    		if(mesureFlg) return;//別スレッドから同時複数呼び出しを無効にする
+
+    		if(mesureFlg) {
+    			return;//別スレッドから同時複数呼び出しを無効にする
+    		}
 
 	    	double[][] result = getLoadCellValue();
 	    	if( result[0][0] != -1 && hx[0].calibrationWeight > 0) {
@@ -791,7 +793,8 @@ public class MainScreenController {
 	    	}
 	    	//テンション異常
 	    	if( tensionErrFlg ) {
-    			if( !mp_error.isPlaying() && !mesureErrFlg) {
+    			if( !mp_error.isPlaying()) {
+    				if( mp_error3.isPlaying() ) mp_error3.stop();
 	    			mp_error.play();
     			}
 	    	}
@@ -799,15 +802,13 @@ public class MainScreenController {
 	    	if( mesureErrCnt[0] > mesureErrCntTreth || mesureErrCnt[1] > mesureErrCntTreth) {
     			mesureErrFlg = true;
     		}
-    		if( mesureErrFlg ) {
-    			if( !mp_error2.isPlaying() ) {
-	    			mp_error2.play();
-    			}
-    			Platform.runLater(() ->infoLB.setText("Equipment abnormality"));
-    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
-    			Platform.runLater(() ->judgmentLB.setText("×"));
-    		}
-    		if( hx[0].calibrationWeight > 0 ) {
+			if( !mp_error2.isPlaying() ) {
+    			mp_error2.play();
+			}
+			Platform.runLater(() ->infoLB.setText("Equipment abnormality"));
+			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
+			Platform.runLater(() ->judgmentLB.setText("×"));
+			if( hx[0].calibrationWeight > 0 ) {
     			Platform.runLater(() ->ch1ErrCntLB.setText(String.valueOf( mesureErrCnt[0] )));
     			Platform.runLater(() ->ch1ErrCnt2LB.setText(String.valueOf( mesureErrCnt2[0] )));
 

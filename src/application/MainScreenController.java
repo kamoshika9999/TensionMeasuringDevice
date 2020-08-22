@@ -174,6 +174,7 @@ public class MainScreenController {
     int shotCnt;
     int[] ch_ShotCnt = new int[2];
     Timestamp startTime;
+    Timestamp machineStartTime =new Timestamp(System.currentTimeMillis());
 
     static boolean mesureFlg =false; //mesure()メソッドを排他的に呼び出すためのフラグ
     boolean mesureTreshFlg =false;//計測結果が絶対値で10g超えている場合True;
@@ -468,7 +469,8 @@ public class MainScreenController {
 	    	if( System.currentTimeMillis() - startTime.getTime() > 60*1000 ) {
 				if( !csvSaveLoad.saveDataSet(
 						ch1TensionRawDataList,ch2TensionRawDataList,tension_dataset,
-						startTime,ch1_max,ch1_min,ch1_ave,ch2_max,ch2_min,ch2_ave,ch_ShotCnt,shotCnt) ) {
+						startTime,machineStartTime,
+						ch1_max,ch1_min,ch1_ave,ch2_max,ch2_min,ch2_ave,ch_ShotCnt,shotCnt) ) {
 					System.out.println("データーセット保存異常");
 					Platform.runLater( () ->this.infoLB.setText("データーセット保存異常"));
 				}

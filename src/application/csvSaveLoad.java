@@ -191,13 +191,14 @@ public class csvSaveLoad {
 	//データーセットを保存する
 	public static boolean saveDataSet(
 			List<Double> ch1TensionRawDataList, List<Double> ch2TensionRawDataList,
-			XYSeriesCollection dataSet,Timestamp startTime,
+			XYSeriesCollection dataSet,Timestamp startTime,Timestamp machineStartTime,
 			double ch1_max, double ch1_min, double ch1_ave,
 			double ch2_max, double ch2_min, double ch2_ave, int[] shotCnt,int mesureCnt) {
 		Timestamp EndTime = new Timestamp(System.currentTimeMillis());
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH'h'mm'm'ss's'");
         String StartDate = sdf.format(startTime);
         String EndDate = sdf.format(EndTime);
+        String MachinStartDate = sdf.format(machineStartTime);
 
         CSVWriter writer;
 		try {
@@ -270,14 +271,16 @@ public class csvSaveLoad {
         	//日時データー
 			writer.writeNext(new String[] { "" });
 			writer.writeNext(new String[] { "[Date]" });
-        	headStr = new String[2];
+        	headStr = new String[3];
     		headStr[0]="StartDate";
     		headStr[1]="EndDate";
+    		headStr[2]="MachinStartDate";
 	        writer.writeNext(headStr);  //ヘッダー書き込み
 
-	        subStr = new String[2];
+	        subStr = new String[3];
     		subStr[0]=StartDate;
     		subStr[1]=EndDate;
+    		subStr[2]= MachinStartDate;
         	writer.writeNext(subStr);
         	//統計量
         	/*

@@ -218,7 +218,6 @@ public class MainScreenController {
      */
     public static double[][] getLoadCellValue(){
 
-    	mesureFlg = true;
 
     	double[][] result= {{-1,-1,-1},{-1,-1,-1}};
 		double[] aveValue= {0,0};
@@ -263,12 +262,6 @@ public class MainScreenController {
 		    	result[1][1] = -1;
 		    	result[1][2] = -1;
 	    	}
-	    	try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-	    	mesureFlg = false;
 	    	return result;
     	}
     	//-------------------------
@@ -331,7 +324,6 @@ public class MainScreenController {
     	}catch(Exception e) {
     		System.out.println(e+"position004");
     	}
-    	mesureFlg = false;
      	return result;
     }
 
@@ -354,8 +346,9 @@ public class MainScreenController {
     	if( tr != null ) {
 	    	try {
 				tr.shutdown();
-				if( tr.awaitTermination(30000, TimeUnit.MICROSECONDS) ) {
+				if( !tr.awaitTermination(300, TimeUnit.MICROSECONDS) ) {
 					System.out.println("タスク終了失敗");
+					tr.shutdownNow();
 				}
 			} catch(Exception e) {
 				System.out.println(e+"position005");
@@ -445,8 +438,9 @@ public class MainScreenController {
     	if( tr != null ) {
 	    	try {
 				tr.shutdown();
-				if( tr.awaitTermination(30000, TimeUnit.MICROSECONDS) ) {
+				if( !tr.awaitTermination(300, TimeUnit.MICROSECONDS) ) {
 					System.out.println("タスク終了失敗");
+					tr.shutdownNow();
 				}
 			} catch(Exception e) {
 				System.out.println(e+"position006");
@@ -459,7 +453,8 @@ public class MainScreenController {
 				Thread.sleep(1);
 				System.out.print("Wait = " + waitCnt++);
 			} catch (InterruptedException e) {
-			e.printStackTrace();
+				System.out.println("rest sleep position");
+				e.printStackTrace();
 			}
     	}
 
@@ -548,11 +543,9 @@ public class MainScreenController {
      * 計測用メインメソッド
      */
     private void mesure() {
-    		final int disableTime = 60;//判定、最大値、最小値の更新無効タイマ
+    		mesureFlg = true;
 
-    		if(mesureFlg) {
-    			return;//別スレッドから同時複数呼び出しを無効にする
-    		}
+    		final int disableTime = 60;//判定、最大値、最小値の更新無効タイマ
 
 	    	double[][] result = getLoadCellValue();
 	    	if( result[0][0] != -1 && hx[0].calibrationWeight > 0) {
@@ -804,21 +797,24 @@ public class MainScreenController {
 	    	if( mesureErrCnt[0] > mesureErrCntTreth || mesureErrCnt[1] > mesureErrCntTreth) {
     			mesureErrFlg = true;
     		}
-			if( !mp_error2.isPlaying() ) {
-    			mp_error2.play();
-			}
-			Platform.runLater(() ->infoLB.setText("Equipment abnormality"));
-			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
-			Platform.runLater(() ->judgmentLB.setText("×"));
+	    	if(mesureErrFlg) {
+				if( !mp_error2.isPlaying() ) {
+	    			mp_error2.play();
+				}
+				Platform.runLater(() ->infoLB.setText("Equipment abnormality"));
+				Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
+				Platform.runLater(() ->judgmentLB.setText("×"));
+	    	}
 			if( hx[0].calibrationWeight > 0 ) {
     			Platform.runLater(() ->ch1ErrCntLB.setText(String.valueOf( mesureErrCnt[0] )));
     			Platform.runLater(() ->ch1ErrCnt2LB.setText(String.valueOf( mesureErrCnt2[0] )));
-
     		}
     		if( hx[1].calibrationWeight > 0 ) {
     			Platform.runLater(() ->ch2ErrCntLB.setText(String.valueOf( mesureErrCnt[1] )));
     			Platform.runLater(() ->ch2ErrCnt2LB.setText(String.valueOf( mesureErrCnt2[1] )));
     		}
+
+    		mesureFlg = false;
     }
 
     /**
@@ -840,8 +836,9 @@ public class MainScreenController {
     	if( tr != null ) {
 	    	try {
 				tr.shutdown();
-				if( tr.awaitTermination(30000, TimeUnit.MICROSECONDS) ) {
+				if( !tr.awaitTermination(300, TimeUnit.MICROSECONDS) ) {
 					System.out.println("タスク終了失敗");
+					tr.shutdownNow();
 				}
 			} catch(Exception e) {
 				System.out.println(e+"position003");
@@ -959,6 +956,7 @@ public class MainScreenController {
 		    		Platform.runLater( () ->blinkShape.setFill(Color.GREEN));
 		    	}
 				mesure();
+
 				if( mesureTreshFlg ) {//30gを超えていれば設備は動作中と判断
 					lockedTimer = System.currentTimeMillis();
   			  	}
@@ -977,6 +975,15 @@ public class MainScreenController {
 					shotCnt = 0;
 					mesureErrCnt[0] = 0;
 					mesureErrCnt[1] = 0;
+				}
+
+				if( debugFlg ) {
+			    	try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						System.out.println("debug Position_run sleep");
+						e.printStackTrace();
+					}
 				}
  		   	}
  	   	};

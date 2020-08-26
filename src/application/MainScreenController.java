@@ -193,7 +193,7 @@ public class MainScreenController {
 	//テンションエラーフラグ
 	boolean tensionErrFlg = false;//テンションが設定値を超えればtrue
 	//スレッドオブジェクト
-	ScheduledExecutorService tr;//33msec毎に計測が実行される。そのオブジェクト
+	ScheduledExecutorService tr;//100msec毎に計測が実行される。そのオブジェクト
 	Runnable tensionMesure;//スケジューラーで呼び出されるオブジェクト
 
 	//メディアプレイヤー
@@ -203,6 +203,8 @@ public class MainScreenController {
 	final String wav2FileString = "error.wav";//テンションが設定範囲を超えた場合に鳴動
 	AudioClip mp_error3;
 	final String wav3FileString = "warning.wav";//テンションが設定範囲を超えた場合に鳴動
+	long WavPlayStartDate = System.currentTimeMillis();
+	int WavPlayLengthTime = 6000;
 
 
 	//各機能実行中フラグ
@@ -328,6 +330,45 @@ public class MainScreenController {
     }
 
     /**
+     * メインスレッド停止
+     */
+    private void mainThreadStop(String callMethodName ) {
+    	if( tr != null ) {
+	    	try {
+				tr.shutdown();
+				if( !tr.isTerminated() ) {
+					if( !tr.awaitTermination(100, TimeUnit.MICROSECONDS) ) {
+						System.out.println("タスク終了失敗");
+					}
+				}else {
+					System.out.println("全てのタスクが終了している");
+				}
+			} catch(Exception e) {
+				System.out.println(e+ ">>" + callMethodName);
+			}
+    	}
+
+    	int waitCnt=0;
+    	while(mesureFlg) {
+    		try {
+				Thread.sleep(1);
+				System.out.print("Wait = " + waitCnt++);
+			} catch (InterruptedException e) {
+			System.out.println(e+ ">>" + callMethodName);
+			e.printStackTrace();
+			}
+    	}
+    }
+
+    /**
+     * メインスレッド開始
+     */
+    private void mainThredStart() {
+		tr = Executors.newSingleThreadScheduledExecutor();
+		tr.scheduleAtFixedRate(tensionMesure, 1000, 100, TimeUnit.MILLISECONDS);
+    }
+
+    /**
      * キャリブレーションメニューを開く
      * @param event
      */
@@ -342,29 +383,7 @@ public class MainScreenController {
     		return;
     	}
 
-    	//スレッド停止------------------
-    	if( tr != null ) {
-	    	try {
-				tr.shutdown();
-				if( !tr.awaitTermination(300, TimeUnit.MICROSECONDS) ) {
-					System.out.println("タスク終了失敗");
-				}
-			} catch(Exception e) {
-				System.out.println(e+"position005");
-			}
-    	}
-
-    	int waitCnt=0;
-    	while(mesureFlg) {
-    		try {
-				Thread.sleep(1);
-				System.out.print("Wait = " + waitCnt++);
-			} catch (InterruptedException e) {
-			e.printStackTrace();
-			}
-    	}
-
-    	//----------------------------------
+    	mainThreadStop("onCaliblationController");
 
     	FXMLLoader loader = new FXMLLoader(getClass().getResource("caliblation.fxml"));
     	AnchorPane root = null;
@@ -389,12 +408,11 @@ public class MainScreenController {
 	    	hx[i].calibrationWeight =CaliblationController.calibWeight[i];
 	    	hx[i].resolution = CaliblationController.resolution[i];
     	}
-		//計測スレッド再開
-		tr = Executors.newSingleThreadScheduledExecutor();
-		tr.scheduleAtFixedRate(tensionMesure, 2000, 100, TimeUnit.MILLISECONDS);
 
     	//チャートレンジ、上限下限線描画
     	chartLineRangeSetting();
+
+    	mainThredStart();
 
     	calibExFlg = false;
     }
@@ -433,28 +451,7 @@ public class MainScreenController {
     	if( resetExFlg ) return;
     	resetExFlg = true;
 
-    	//計測スレッド停止
-    	if( tr != null ) {
-	    	try {
-				tr.shutdown();
-				if( !tr.awaitTermination(300, TimeUnit.MICROSECONDS) ) {
-					System.out.println("タスク終了失敗");
-				}
-			} catch(Exception e) {
-				System.out.println(e+"position006");
-			}
-    	}
-
-    	int waitCnt=0;
-    	while(mesureFlg) {
-    		try {
-				Thread.sleep(1);
-				System.out.print("Wait = " + waitCnt++);
-			} catch (InterruptedException e) {
-				System.out.println("rest sleep position");
-				e.printStackTrace();
-			}
-    	}
+    	mainThreadStop("onResetBT");
 
     	try {
     	//約60秒未満は保存しない
@@ -513,8 +510,8 @@ public class MainScreenController {
 	        }
 	        tensionErrFlg = false;
 	        //メディアプレイヤー再生強制停止
-			if( mp_error.isPlaying() ) Platform.runLater(() ->mp_error.stop());
-			if( mp_error2.isPlaying() ) Platform.runLater(() ->mp_error2.stop());
+			if( mp_error.isPlaying() ) Platform.runLater( () ->mp_error.stop());
+			if( mp_error2.isPlaying() ) Platform.runLater( () ->mp_error2.stop());
 		}
 
 		startTime = new Timestamp(System.currentTimeMillis());
@@ -526,9 +523,7 @@ public class MainScreenController {
     	//チャートレンジ、上限下限線描画
     	chartLineRangeSetting();
 
-		//計測スレッド再開
-		tr = Executors.newSingleThreadScheduledExecutor();
-		tr.scheduleAtFixedRate(tensionMesure, 1000, 100, TimeUnit.MILLISECONDS);
+    	mainThredStart();
 
 		System.out.println("Reset!!");
     	resetExFlg = false;
@@ -565,7 +560,8 @@ public class MainScreenController {
 	    	}
 
     		//経過時間計算
-    		long chartTime = System.currentTimeMillis() - startTime.getTime();//経過時間(mSec単位)
+			long currentTime = System.currentTimeMillis();//現在時刻を取得
+    		long chartTime = currentTime - startTime.getTime();//経過時間(mSec単位)
 
 	    	if( !mesureStopFlg ) {
 		    	if( mesureTreshFlg ) {//どちらかのチャンネルが10gを超えている場合
@@ -733,9 +729,12 @@ public class MainScreenController {
 		    			Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ffff00ff")));
 		    			Platform.runLater(() ->judgmentLB.setText("!!!"));
 		    	    	//約disableTime秒未満は鳴らさない
-		    			if( !mp_error3.isPlaying() && !mesureErrFlg && mesureTreshFlg &&
-		    					( System.currentTimeMillis() - startTime.getTime() > disableTime*1000 )) {
-		    				Platform.runLater(() ->mp_error3.play());//テンション警告を鳴らす
+		    			if( !mp_error3.isPlaying() && !mesureErrFlg && mesureTreshFlg && !tensionErrFlg &&
+		    					( currentTime - startTime.getTime() > disableTime*1000 )) {
+		    				if( currentTime - WavPlayStartDate >  WavPlayLengthTime) {
+								WavPlayStartDate = currentTime;
+								Platform.runLater(() ->mp_error3.play());//テンション警告を鳴らす
+		    				}
 		    			}
 
 		    		}else if( judgmentFlg > 2){
@@ -782,10 +781,13 @@ public class MainScreenController {
 		    	Platform.runLater(() ->infoLB.setText("Mesure Stop"));
 	    	}
 	    	//テンション異常
-	    	if( tensionErrFlg ) {
+	    	if( tensionErrFlg && !mesureErrFlg) {
     			if( !mp_error.isPlaying()) {
-    				if( mp_error3.isPlaying() ) Platform.runLater(() ->mp_error3.stop());
-    				Platform.runLater(() ->mp_error.play());
+    				if( mp_error3.isPlaying() ) Platform.runLater( () ->mp_error3.stop());
+    				if( currentTime - WavPlayStartDate >  WavPlayLengthTime) {
+						WavPlayStartDate = currentTime;
+						Platform.runLater(() ->mp_error.play());
+    				}
     			}
 	    	}
 	    	//機器異常判定
@@ -794,7 +796,11 @@ public class MainScreenController {
     		}
 	    	if(mesureErrFlg) {
 				if( !mp_error2.isPlaying() ) {
-					Platform.runLater(() ->mp_error2.play());
+    				if( mp_error3.isPlaying() ) Platform.runLater( () ->mp_error3.stop());
+    				if( currentTime - WavPlayStartDate >  WavPlayLengthTime) {
+						WavPlayStartDate = currentTime;
+						Platform.runLater(() ->mp_error2.play());
+    				}
 				}
 				Platform.runLater(() ->infoLB.setText("Equipment abnormality"));
 				Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
@@ -827,28 +833,7 @@ public class MainScreenController {
     		return;
     	}
 
-    	//スレッド停止------------------
-    	if( tr != null ) {
-	    	try {
-				tr.shutdown();
-				if( !tr.awaitTermination(300, TimeUnit.MICROSECONDS) ) {
-					System.out.println("タスク終了失敗");
-				}
-			} catch(Exception e) {
-				System.out.println(e+"position003");
-			}
-    	}
-
-    	int waitCnt=0;
-    	while(mesureFlg) {
-    		try {
-				Thread.sleep(1);
-				System.out.print("Wait = " + waitCnt++);
-			} catch (InterruptedException e) {
-			e.printStackTrace();
-			}
-    	}
-    	//-------------------------------
+    	mainThreadStop("onSettingMenuBT");
 
     	FXMLLoader loader = new FXMLLoader(getClass().getResource("settingMenu.fxml"));
 		AnchorPane root = null;
@@ -871,8 +856,7 @@ public class MainScreenController {
     	//チャートレンジ、上限下限線描画
     	chartLineRangeSetting();
 
-		tr = Executors.newSingleThreadScheduledExecutor();
-		tr.scheduleAtFixedRate(tensionMesure, 5000, 100, TimeUnit.MILLISECONDS);
+    	mainThredStart();
 
 		settingExFlg = false;
     }
@@ -883,6 +867,7 @@ public class MainScreenController {
      */
     @FXML
     void onShutdownBT(ActionEvent event) {
+    	mainThreadStop("onShutdownBT");
     	System.exit(0);
     }
 
@@ -951,17 +936,19 @@ public class MainScreenController {
 		    	}
 				mesure();
 
+				long currentTime = System.currentTimeMillis();//現在時刻を取得
+
 				if( mesureTreshFlg ) {//30gを超えていれば設備は動作中と判断
-					lockedTimer = System.currentTimeMillis();
+					lockedTimer = currentTime;
   			  	}
-				if( System.currentTimeMillis() - lockedTimer > lockedTimerThresh) {
+				if( currentTime - lockedTimer > lockedTimerThresh) {
 					if( !mesureStopFlg) {
 						mesureStopFlg  = true;
 						onResetBT(null);
 					}
 				}else {
 					if( mesureStopFlg ) {
-						startTime = new Timestamp(System.currentTimeMillis());
+						startTime = new Timestamp(currentTime);
 						mesureStopFlg  = false;
 						Platform.runLater(() ->ch1AveLB.setText("---"));
 						Platform.runLater(() ->ch2AveLB.setText("---"));
@@ -971,7 +958,7 @@ public class MainScreenController {
 						Platform.runLater(() ->ch2MinLB.setText("---"));
 					}
 				}
-				if( System.currentTimeMillis() - lockedTimer > 8 * 60 *60 *1000 ) {
+				if( currentTime- lockedTimer > 8 * 60 *60 *1000 ) {
 					shotCnt = 0;
 					mesureErrCnt[0] = 0;
 					mesureErrCnt[1] = 0;

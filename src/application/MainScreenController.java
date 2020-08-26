@@ -318,7 +318,7 @@ public class MainScreenController {
 					result[i][0] = aveValue[i] / enableCnt[i];
 					result[i][1] = ((aveWeight[i] / enableCnt[i]) - settingMenu.tareValue[i])
 																	* (settingMenu.signInversionFlg[i]?-1:1);
-					result[i][2] = aveWeight[i] / enableCnt[i];
+					result[i][2] = aveWeight[i] / enableCnt[i] * (settingMenu.signInversionFlg[i]?-1:1);
 	    		}
     		}
     	}catch(Exception e) {
@@ -348,7 +348,6 @@ public class MainScreenController {
 				tr.shutdown();
 				if( !tr.awaitTermination(300, TimeUnit.MICROSECONDS) ) {
 					System.out.println("タスク終了失敗");
-					tr.shutdownNow();
 				}
 			} catch(Exception e) {
 				System.out.println(e+"position005");
@@ -392,7 +391,7 @@ public class MainScreenController {
     	}
 		//計測スレッド再開
 		tr = Executors.newSingleThreadScheduledExecutor();
-		tr.scheduleAtFixedRate(tensionMesure, 5000, 33, TimeUnit.MILLISECONDS);
+		tr.scheduleAtFixedRate(tensionMesure, 2000, 100, TimeUnit.MILLISECONDS);
 
     	//チャートレンジ、上限下限線描画
     	chartLineRangeSetting();
@@ -440,7 +439,6 @@ public class MainScreenController {
 				tr.shutdown();
 				if( !tr.awaitTermination(300, TimeUnit.MICROSECONDS) ) {
 					System.out.println("タスク終了失敗");
-					tr.shutdownNow();
 				}
 			} catch(Exception e) {
 				System.out.println(e+"position006");
@@ -492,12 +490,6 @@ public class MainScreenController {
 		ch2MovingaverageTimeList.clear();
 
 		//ラベル表示リセット
-		Platform.runLater(() ->ch1AveLB.setText("---"));
-		Platform.runLater(() ->ch2AveLB.setText("---"));
-		Platform.runLater(() ->ch1MaxLB.setText("---"));
-		Platform.runLater(() ->ch1MinLB.setText("---"));
-		Platform.runLater(() ->ch2MaxLB.setText("---"));
-		Platform.runLater(() ->ch2MinLB.setText("---"));
 		Platform.runLater(() ->CH1movingaverageLB.setText("---"));
 		Platform.runLater(() ->CH2movingaverageLB.setText("---"));
 		Platform.runLater(() ->hxvalueLB1.setText("---"));
@@ -506,6 +498,7 @@ public class MainScreenController {
 		Platform.runLater(() ->hxvalueLB5.setText("---"));
 		Platform.runLater(() ->ch1ErrCntLB.setText("---"));
 		Platform.runLater(() ->ch2ErrCntLB.setText("---"));
+		Platform.runLater(() ->infoLB.setText(""));
 
 
 		//機器異常リセット ※eventがnullの時は自動停止時に呼び出されたと判断しアラーム鳴動を止めない
@@ -520,13 +513,14 @@ public class MainScreenController {
 	        }
 	        tensionErrFlg = false;
 	        //メディアプレイヤー再生強制停止
-			if( mp_error != null ) mp_error.stop();
-			if( mp_error2 != null ) mp_error2.stop();
+			if( mp_error.isPlaying() ) Platform.runLater(() ->mp_error.stop());
+			if( mp_error2.isPlaying() ) Platform.runLater(() ->mp_error2.stop());
 		}
 
 		startTime = new Timestamp(System.currentTimeMillis());
     	}catch(Exception e) {
     		System.out.println(e +" position001");
+    		resetExFlg = false;
     	}
 
     	//チャートレンジ、上限下限線描画
@@ -534,7 +528,8 @@ public class MainScreenController {
 
 		//計測スレッド再開
 		tr = Executors.newSingleThreadScheduledExecutor();
-		tr.scheduleAtFixedRate(tensionMesure, 2000, 33, TimeUnit.MILLISECONDS);
+		tr.scheduleAtFixedRate(tensionMesure, 1000, 100, TimeUnit.MILLISECONDS);
+
 		System.out.println("Reset!!");
     	resetExFlg = false;
     }
@@ -740,7 +735,7 @@ public class MainScreenController {
 		    	    	//約disableTime秒未満は鳴らさない
 		    			if( !mp_error3.isPlaying() && !mesureErrFlg && mesureTreshFlg &&
 		    					( System.currentTimeMillis() - startTime.getTime() > disableTime*1000 )) {
-			    			mp_error3.play();//テンション警告を鳴らす
+		    				Platform.runLater(() ->mp_error3.play());//テンション警告を鳴らす
 		    			}
 
 		    		}else if( judgmentFlg > 2){
@@ -789,8 +784,8 @@ public class MainScreenController {
 	    	//テンション異常
 	    	if( tensionErrFlg ) {
     			if( !mp_error.isPlaying()) {
-    				if( mp_error3.isPlaying() ) mp_error3.stop();
-	    			mp_error.play();
+    				if( mp_error3.isPlaying() ) Platform.runLater(() ->mp_error3.stop());
+    				Platform.runLater(() ->mp_error.play());
     			}
 	    	}
 	    	//機器異常判定
@@ -799,7 +794,7 @@ public class MainScreenController {
     		}
 	    	if(mesureErrFlg) {
 				if( !mp_error2.isPlaying() ) {
-	    			mp_error2.play();
+					Platform.runLater(() ->mp_error2.play());
 				}
 				Platform.runLater(() ->infoLB.setText("Equipment abnormality"));
 				Platform.runLater(() ->judgmentLB.setTextFill(Paint.valueOf("#ff0000ff")));
@@ -838,7 +833,6 @@ public class MainScreenController {
 				tr.shutdown();
 				if( !tr.awaitTermination(300, TimeUnit.MICROSECONDS) ) {
 					System.out.println("タスク終了失敗");
-					tr.shutdownNow();
 				}
 			} catch(Exception e) {
 				System.out.println(e+"position003");
@@ -878,7 +872,7 @@ public class MainScreenController {
     	chartLineRangeSetting();
 
 		tr = Executors.newSingleThreadScheduledExecutor();
-		tr.scheduleAtFixedRate(tensionMesure, 5000, 33, TimeUnit.MILLISECONDS);
+		tr.scheduleAtFixedRate(tensionMesure, 5000, 100, TimeUnit.MILLISECONDS);2
 
 		settingExFlg = false;
     }
@@ -969,6 +963,12 @@ public class MainScreenController {
 					if( mesureStopFlg ) {
 						startTime = new Timestamp(System.currentTimeMillis());
 						mesureStopFlg  = false;
+						Platform.runLater(() ->ch1AveLB.setText("---"));
+						Platform.runLater(() ->ch2AveLB.setText("---"));
+						Platform.runLater(() ->ch1MaxLB.setText("---"));
+						Platform.runLater(() ->ch1MinLB.setText("---"));
+						Platform.runLater(() ->ch2MaxLB.setText("---"));
+						Platform.runLater(() ->ch2MinLB.setText("---"));
 					}
 				}
 				if( System.currentTimeMillis() - lockedTimer > 8 * 60 *60 *1000 ) {
@@ -1023,7 +1023,7 @@ public class MainScreenController {
 
         // 上限線、下限線を引く
 		XYPlot xyPlot = chart_tension.getXYPlot();
-		xyPlot.clearRangeMarkers();
+		Platform.runLater( () ->xyPlot.clearRangeMarkers());
 		float dash [] = {4f, 5f};
 		Stroke dashed = new BasicStroke(2f,
                 BasicStroke.CAP_BUTT,
@@ -1034,12 +1034,14 @@ public class MainScreenController {
 		Marker marker = new ValueMarker(settingMenu.maxErrorValue[0]);
 		marker.setStroke(dashed);
 		marker.setPaint(org.jfree.chart.ChartColor.red);
-		xyPlot.addRangeMarker(marker);
+		final Marker tmpMarker = marker;
+		Platform.runLater( () ->xyPlot.addRangeMarker(tmpMarker));
 
 		marker = new ValueMarker(settingMenu.minErrorValue[0]);
 		marker.setStroke(dashed);
 		marker.setPaint(org.jfree.chart.ChartColor.red);
-		xyPlot.addRangeMarker(marker);
+		final Marker tmpMarker2 = marker;
+		Platform.runLater( () ->xyPlot.addRangeMarker(tmpMarker2));
 
 		//グラフレンジの設定
 		Platform.runLater( () ->((NumberAxis)((XYPlot)chart_tension.getPlot()).getRangeAxis()).

@@ -872,7 +872,7 @@ public class MainScreenController {
     	chartLineRangeSetting();
 
 		tr = Executors.newSingleThreadScheduledExecutor();
-		tr.scheduleAtFixedRate(tensionMesure, 5000, 100, TimeUnit.MILLISECONDS);2
+		tr.scheduleAtFixedRate(tensionMesure, 5000, 100, TimeUnit.MILLISECONDS);
 
 		settingExFlg = false;
     }

@@ -50,6 +50,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -115,6 +116,8 @@ public class MainScreenController {
     private Label ch1ErrCnt2LB;//3回の測定のレンジが10ｇ超えていればカウントアップ
     @FXML
     private Label ch2ErrCnt2LB;//3回の測定のレンジが10ｇ超えていればカウントアップ
+    @FXML
+    private CheckBox gaugChk;//プッシュプルゲージ測定モード
 
 
     //デバッグフラグ
@@ -610,7 +613,7 @@ public class MainScreenController {
 			    		Platform.runLater( () ->tension_dataset.getSeries(0).add((double)chartTime/1000.0,movingaverage[0]));
 
 			    		//テンションの最大値、最小値、平均を更新
-			    		if( chartTime/1000 > disableTime) {
+			    		if( chartTime/1000 > disableTime || gaugChk.isSelected()) {
 				    		if( ch1_max < movingaverage[0] ) ch1_max = movingaverage[0];
 				    		if( ch1_min > movingaverage[0] ) ch1_min = movingaverage[0];
 			    		}
@@ -652,7 +655,7 @@ public class MainScreenController {
 			    		Platform.runLater( () ->tension_dataset.getSeries(1).add((double)chartTime/1000.0, movingaverage[1]));
 
 			    		//テンションの最大値、最小値、平均を更新
-			    		if( chartTime/1000 > disableTime) {
+			    		if( chartTime/1000 > disableTime || gaugChk.isSelected()) {
 				    		if( ch2_max < movingaverage[1] ) ch2_max = movingaverage[1];
 				    		if( ch2_min > movingaverage[1] ) ch2_min = movingaverage[1];
 			    		}
@@ -661,7 +664,7 @@ public class MainScreenController {
 		    		//-------------------------------------------------------------------------------------------------
 
 		    		//テンションの最大値、最小値、平均を更新
-		    		if( chartTime/1000 > disableTime) {
+		    		if( chartTime/1000 > disableTime || gaugChk.isSelected()) {
 			    		if( hx[0].calibrationWeight > 0 ) {
 				    		Platform.runLater(() ->ch1MaxLB.setText(String.format("%.0f",ch1_max)));
 				    		Platform.runLater(() ->ch1MinLB.setText(String.format("%.0f",ch1_min)));
@@ -882,7 +885,7 @@ public class MainScreenController {
         GpioController gpio = GpioFactory.getInstance();
         for(int i=0;i<2;i++) {
 	        pinHXDAT[i] = gpio.provisionDigitalInputPin(pinNoDAT[i],
-	        		"HX_DAT"+String.valueOf(i), PinPullResistance.OFF);
+	        		"HX_DAT"+String.valueOf(i), PinPullResistance.PULL_DOWN);
 	        pinHXCLK[i] = gpio.provisionDigitalOutputPin(pinNoCLK[i],
 	        		"HX_CLK"+String.valueOf(i), PinState.LOW);
 	        hx[i] = new HX711(pinHXDAT[i], pinHXCLK[i], 128);

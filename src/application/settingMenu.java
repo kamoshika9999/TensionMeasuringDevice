@@ -213,6 +213,8 @@ public class settingMenu {
   	 		   public void run() {
   				  if( !MainScreenController.mesureFlg ) {
   					result = MainScreenController.getLoadCellValue();
+  					//符号反映
+  					for(int i=0;i<2;i++) result[i][2] *= (settingMenu.signInversionFlg[i]?-1:1);
   					//デバッグコード------------------------------------------
   					if(MainScreenController.debugFlg) {
   						result[0][2] = 0.000;

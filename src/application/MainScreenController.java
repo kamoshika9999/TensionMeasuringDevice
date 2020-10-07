@@ -113,9 +113,9 @@ public class MainScreenController {
     @FXML
     private Circle blinkShape;//可動状態インジケーター
     @FXML
-    private Label ch1ErrCnt2LB;//3回の測定のレンジが10ｇ超えていればカウントアップ
+    private Label ch1ErrCnt2LB;//2回の測定のレンジが10ｇ超えていればカウントアップ
     @FXML
-    private Label ch2ErrCnt2LB;//3回の測定のレンジが10ｇ超えていればカウントアップ
+    private Label ch2ErrCnt2LB;//2回の測定のレンジが10ｇ超えていればカウントアップ
     @FXML
     private CheckBox gaugChk;//プッシュプルゲージ測定モード
 
@@ -227,7 +227,7 @@ public class MainScreenController {
     	double[][] result= {{-1,-1,-1},{-1,-1,-1}};
 		double[] aveValue= {0,0};
 		double[] aveWeight = {0,0};
-		final int rpeetCnt = 3;//n回平均を取る
+		final int rpeetCnt = 2;//n回平均を取る
 		double[][] tmpValue = new double[2][rpeetCnt];
 		double[] maxValue= new double[2];
 		double[] minValue= new double[2];
@@ -299,13 +299,13 @@ public class MainScreenController {
         			}
 		        }
     		}
-    		//測定のレンジがhx[i].resolution * 15倍(15g)を超えていたら結果は-1になる
+    		//測定のレンジがhx[i].resolution * 10倍(10g)を超えていたら結果は-1になる
     		boolean[] flg = new boolean[2];
     		flg[0] = true;
     		flg[1] = true;
     		for(int i=0;i<2;i++) {
     			if( hx[i].calibrationWeight > 0 && enableCnt[i] > 0) {
-	    			if( maxValue[i] - minValue[i] > hx[i].resolution * 15) {
+	    			if( maxValue[i] - minValue[i] > hx[i].resolution * 10) {
 	    				flg[i]=false;
 	    				mesureErrCnt2[i]++;//測定異常回数をプラスする
 	    				System.out.println("******************************");
@@ -538,7 +538,7 @@ public class MainScreenController {
     private void mesure() {
     		mesureFlg = true;
 
-    		final int disableTime = 60;//判定、最大値、最小値の更新無効タイマ
+    		final int disableTime = 120;//判定、最大値、最小値の更新無効タイマ
 
 	    	double[][] result = getLoadCellValue();
 	    	if( result[0][0] != -1 && hx[0].calibrationWeight > 0) {
@@ -885,7 +885,7 @@ public class MainScreenController {
         GpioController gpio = GpioFactory.getInstance();
         for(int i=0;i<2;i++) {
 	        pinHXDAT[i] = gpio.provisionDigitalInputPin(pinNoDAT[i],
-	        		"HX_DAT"+String.valueOf(i), PinPullResistance.PULL_DOWN);
+	        		"HX_DAT"+String.valueOf(i), PinPullResistance.OFF);
 	        pinHXCLK[i] = gpio.provisionDigitalOutputPin(pinNoCLK[i],
 	        		"HX_CLK"+String.valueOf(i), PinState.LOW);
 	        hx[i] = new HX711(pinHXDAT[i], pinHXCLK[i], 128);

@@ -5,9 +5,9 @@
     <!--define folder properties-->
     <property name="dir.buildfile" value="."/>
     <property name="dir.workspace" value="${dir.buildfile}/.."/>
-    <property name="dir.jarfile" value="//192.168.5.160/raspberry_pi"/>
+    <property name="dir.jarfile" value="//192.168.5.162/raspberry_pi"/>
 
-    <property name="raspberrypi" value="192.168.5.160" />
+    <property name="raspberrypi" value="192.168.5.162" />
     <property name="raspberryfolder" value="/home/pi/samba" />
     <property name="username" value="pi" />
     <property name="password" value="pi" />

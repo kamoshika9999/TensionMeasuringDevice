@@ -42,7 +42,10 @@ public class HX711 {
         while (!isReady()) {
             sleep(1);
 			timeOutCnt++;
-            if(timeOutCnt>1000) return false;//1秒以上pinDTがHeightならばタイムアウト
+            if(timeOutCnt>1000) {
+            	System.out.println("HX711 TIMEOUT");
+            	return false;//1秒以上pinDTがHeightならばタイムアウト
+            }
         }
 
         long count = 0;
@@ -58,7 +61,8 @@ public class HX711 {
         count = count ^ 0x800000;//最上位Bitをキャンセルしている(なぜか？)
         pinCLK.setState(PinState.LOW);
 
-        if( count < 8700000 ) {
+        if( count < 8000000 ) {
+        	System.out.println("count < 800000" + String.valueOf(count));
         	value = -1;
         }else {
         	value = count;

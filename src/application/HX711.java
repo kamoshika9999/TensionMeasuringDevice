@@ -61,8 +61,8 @@ public class HX711 {
         count = count ^ 0x800000;//最上位Bitをキャンセルしている(なぜか？)
         pinCLK.setState(PinState.LOW);
 
-        if( count < 8000000 ) {
-        	System.out.println("count < 800000" + String.valueOf(count));
+        if( count < 8700000 ) {
+        	System.out.println("count < 870000" + String.valueOf(count));
         	value = -1;
         }else {
         	value = count;
@@ -73,7 +73,11 @@ public class HX711 {
         }else {
         	weight = (value-emptyValue)/resolution*-1;
         }
-        return true;
+        if( value < 0 ) {
+        	return false;
+        }else {
+        	return true;
+        }
     }
 
     public void setGain(int gain) {

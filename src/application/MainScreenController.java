@@ -279,7 +279,7 @@ public class MainScreenController {
         			if( hx[i].calibrationWeight > 0 ) {
         				hx[i].read();
 				        int cnt = 0;
-				        while( hx[i].value == -1) {
+				        while( hx[i].value < 0) {
 				        	hx[i].read();
 				        	cnt++;
 				        	if( cnt > 10 ) {
@@ -290,8 +290,8 @@ public class MainScreenController {
 					        tmpValue[i][j] = hx[i].value;
 					        if( maxValue[i] < hx[i].value) maxValue[i] = hx[i].value;
 					        if( minValue[i] > hx[i].value) minValue[i] = hx[i].value;
-					        aveValue[i] += hx[i].value;//平均計算様に加算
-					        aveWeight[i] += hx[i].weight;//平均計算様に加算
+					        aveValue[i] += hx[i].value;//平均計算用に加算
+					        aveWeight[i] += hx[i].weight;//平均計算用に加算
 					        enableCnt[i]++;//有効な測定回数
 				        }else {
 				        	mesureErrCnt[i]++;//11回連続-1ならば機器異常回数をプラスする

@@ -32,7 +32,7 @@ public class PasswordDialogController {
     	}
 
     	//設置用-----------
-    	flg=true;
+    	//flg=true;
     	//-----------------
 		Scene scene = ((Node) event.getSource()).getScene();
 		Window window = scene.getWindow();

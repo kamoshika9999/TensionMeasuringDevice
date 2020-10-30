@@ -118,7 +118,8 @@ public class MainScreenController {
     private Label ch2ErrCnt2LB;//2回の測定のレンジが10ｇ超えていればカウントアップ
     @FXML
     private CheckBox gaugChk;//プッシュプルゲージ測定モード
-
+    @FXML
+    private Button StdMesureBTN;//分銅による点検ボタン
 
     //デバッグフラグ
     public static boolean debugFlg = false;
@@ -1148,6 +1149,72 @@ public class MainScreenController {
 
         return tension_dataset;
     }
+
+    /**
+     * 分銅による点検ボタン
+     * @param event
+     */
+    @FXML
+    void onStdMesureBT(ActionEvent event) {
+    	if( settingExFlg ) return;
+
+    	settingExFlg = true;
+
+    	FXMLLoader loader = new FXMLLoader(getClass().getResource("progressBar.fxml"));
+		AnchorPane root = null;
+		try {
+			root = (AnchorPane) loader.load();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		Scene scene = new Scene(root);
+		Stage stage = new Stage();
+		stage.initStyle(StageStyle.UNDECORATED);
+		stage.setScene(scene);
+		stage.setResizable(false);
+		stage.setAlwaysOnTop(true);//なぜか機能しない
+		ProgressBarController.stage = stage;
+
+		ProgressBarController.CH1movingaverageLB=CH1movingaverageLB;
+		ProgressBarController.CH2movingaverageLB=CH2movingaverageLB;
+
+		//設定ウィンドウを開く
+		stage.showAndWait();
+
+		if( ProgressBarController.resultFlg ) {//キャンセルされた場合何もしない
+			//結果をログに格納
+			int ch1AVE = 0;
+			int ch2AVE = 0;
+			try {
+				ch1AVE = Math.abs(Integer.valueOf( CH1movingaverageLB.getText() ));
+				ch2AVE = Math.abs(Integer.valueOf( CH2movingaverageLB.getText() ));
+			}catch(Exception e) {
+				System.out.println(e);
+			}
+			csvSaveLoad.STDsampleMesureResultLogWrite(ch1AVE,ch2AVE);
+			System.out.println("分銅測定　データー保存完了");
+
+			//infoテキストへ終了メッセージ表示
+			if( ch1AVE > 30 ) {
+				if( ch1AVE>103 || ch1AVE<97) {
+					Platform.runLater( () ->infoLB.setText("CH1 inspection result BAD"));
+				}else {
+					Platform.runLater( () ->infoLB.setText("CH1 inspection result GODD"));
+				}
+			}
+			if( ch2AVE > 30 ) {
+				if( ch2AVE>103 || ch2AVE<97) {
+					Platform.runLater( () ->infoLB.setText("CH2 inspection result BAD"));
+				}else {
+					Platform.runLater( () ->infoLB.setText("CH2 inspection result GODD"));
+				}
+			}
+		}
+
+
+		settingExFlg = false;
+    }
+
 
 }
 

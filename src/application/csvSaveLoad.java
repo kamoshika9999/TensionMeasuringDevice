@@ -15,7 +15,7 @@ import com.opencsv.CSVWriter;
 
 public class csvSaveLoad {
 
-	 /* キャリブレーションデーターCSV書き込み
+	 /** キャリブレーションデーターCSV書き込み
 	 * @return
 	 */
 	public static boolean calibDataCsvWrite(
@@ -373,4 +373,98 @@ public class csvSaveLoad {
 
 		return true;
 	}
+	 /** 分銅による測定結果を保存する
+	 * @return
+	 */
+	public static boolean STDsampleMesureResultLogWrite(int ch1AVE,int ch2AVE) {
+		CSVWriter writer;
+
+		Timestamp nowTime = new Timestamp(System.currentTimeMillis());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH'h'mm'm'ss's'");
+        String nowDate = sdf.format(nowTime);
+
+
+		try {
+			File folder = new File( MyUtil.getJarFolder() + "std_sample_log");
+	    	if( !folder.exists()) {
+	    		if( !folder.mkdir() ) {
+	    			System.out.println("std_sample_logフォルダ作成失敗");
+	    		}
+	    	}
+	    	writer = new CSVWriter(new FileWriter( MyUtil.getJarFolder()
+	    					+ "std_sample_log/" + nowDate  + ".csv"));
+
+	    	//計測データー書き込み
+	    	String[] headStr = new String[3];
+			headStr[0]="date";
+			headStr[1]="CH1 AveValue";
+			headStr[2]="CH2 AveValue";
+	    	writer.writeNext(headStr);  //ヘッダー書き込み
+
+	    	String[] subStr= new String[3];
+	    	subStr[0] = nowDate;
+	    	subStr[1] = String.format("%d",ch1AVE );
+	    	subStr[2] = String.format("%d",ch2AVE );
+        	writer.writeNext(subStr);
+
+
+			//キャリブレーションデーター
+			writer.writeNext(new String[] { "[CalibrationData]" });
+			String[] headStr2 = new String[8];
+			headStr2[0]="CH1 EmptyValue";
+			headStr2[1]="CH1 CalibValue";
+			headStr2[2]="CH1 Weight";
+			headStr2[3]="CH1 Resolution";
+
+			headStr2[4]="CH2 EmptyValue";
+			headStr2[5]="CH2 CalibValue";
+			headStr2[6]="CH2 Weight";
+			headStr2[7]="CH1 Resolution";
+	        writer.writeNext(headStr2);  //ヘッダー書き込み
+
+	        subStr= new String[ 4*2 ];
+	        for(int i=0;i<2;i++) {
+	        	subStr[i*4] = String.format("%d", CaliblationController.emptyValue[i]);
+	        	subStr[i*4+1] = String.format("%d", CaliblationController.calibValue[i]);
+	        	subStr[i*4+2] = String.format("%f",CaliblationController.calibWeight[i]);
+	        	subStr[i*4+3] = String.format("%f",CaliblationController.resolution[i]);
+	        }
+        	writer.writeNext(subStr);
+
+        	//設定データー
+			writer.writeNext(new String[] { "" });
+			writer.writeNext(new String[] { "[SettingData]" });
+        	headStr = new String[9];
+    		headStr[0]="ch1RatioValue";
+    		headStr[1]="ch1MaxErrorValue";
+    		headStr[2]="ch1MinErrorValue";
+    		headStr[3]="ch2RatioValue";
+    		headStr[4]="ch2MaxErrorValue";
+    		headStr[5]="ch2MinErrorValue";
+    		headStr[6]="ch1TareValue";
+    		headStr[7]="ch2TareValue";
+    		headStr[8]="movingAverageTime";
+	        writer.writeNext(headStr);  //ヘッダー書き込み
+
+	        subStr = new String[9];
+	        subStr[0] = String.valueOf( settingMenu.ratioValue[0] );
+	        subStr[1] = String.valueOf( settingMenu.maxErrorValue[0] );
+	        subStr[2] = String.valueOf( settingMenu.minErrorValue[0] );
+	        subStr[3] = String.valueOf( settingMenu.ratioValue[1] );
+	        subStr[4] = String.valueOf( settingMenu.maxErrorValue[1] );
+	        subStr[5] = String.valueOf( settingMenu.minErrorValue[1] );
+	        subStr[6] = String.valueOf( settingMenu.tareValue[0] );
+	        subStr[7] = String.valueOf( settingMenu.tareValue[1] );
+	        subStr[8] = String.valueOf( settingMenu.movingAverageTime );
+        	writer.writeNext(subStr);
+
+	        writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
+  }
+
 }

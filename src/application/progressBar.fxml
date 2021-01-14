@@ -29,12 +29,12 @@
             <Font size="14.0" />
          </font>
       </Label>
-      <Label fx:id="ch1ResultTX" layoutX="92.0" layoutY="65.0" text="---">
+      <Label fx:id="ch1ResultTX" layoutX="97.0" layoutY="65.0" text="---">
          <font>
             <Font size="14.0" />
          </font>
       </Label>
-      <Label fx:id="ch2ResultTX" layoutX="92.0" layoutY="95.0" text="---">
+      <Label fx:id="ch2ResultTX" layoutX="97.0" layoutY="95.0" text="---">
          <font>
             <Font size="14.0" />
          </font>

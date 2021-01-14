@@ -236,8 +236,9 @@ public class MainScreenController {
 	   	//デバッグ用---------------
     	if( debugFlg ) {
 	        Random rand = new Random();
-	        int num = rand.nextInt(30)-15;
-	    	result[0][1] = (61 + num  - settingMenu.tareValue[0])* (settingMenu.signInversionFlg[0]?-1:1);
+	        //int num = rand.nextInt(30)-15;
+	        int num = rand.nextInt(6)-3;
+	    	result[0][1] = (100 + num  - settingMenu.tareValue[0])* (settingMenu.signInversionFlg[0]?-1:1);
 	    	result[0][2] = 61 + num;
 	    	num = rand.nextInt(30)-15;
 	    	result[1][1] = (72 + num - settingMenu.tareValue[1])* (settingMenu.signInversionFlg[1]?-1:1);
@@ -458,49 +459,62 @@ public class MainScreenController {
     	mainThreadStop("onResetBT");
 
     	try {
-    	//約60秒未満は保存しない
-    	if(startTime !=null) {//startTimeオブジェクトがnullの時は実行しない
-	    	if( System.currentTimeMillis() - startTime.getTime() > 60*1000 ) {
-				if( !csvSaveLoad.saveDataSet(
-						ch1TensionRawDataList,ch2TensionRawDataList,tension_dataset,
-						startTime,machineStartTime,
-						ch1_max,ch1_min,ch1_ave,ch2_max,ch2_min,ch2_ave,ch_ShotCnt,shotCnt) ) {
-					System.out.println("データーセット保存異常");
-					Platform.runLater( () ->this.infoLB.setText("データーセット保存異常"));
+    	if(mesureStopFlg) {//テンションが掛かっていない時のみデーターをリセットする
+	    	//****************************************************************************************************
+	    	//データー保存と現データーリセット
+	    	//****************************************************************************************************
+	    	//約60秒未満は保存しない
+	    	if(startTime !=null) {//startTimeオブジェクトがnullの時は実行しない
+		    	if( System.currentTimeMillis() - startTime.getTime() > 60*1000 ) {
+					if( !csvSaveLoad.saveDataSet(
+							ch1TensionRawDataList,ch2TensionRawDataList,tension_dataset,
+							startTime,machineStartTime,
+							ch1_max,ch1_min,ch1_ave,ch2_max,ch2_min,ch2_ave,ch_ShotCnt,shotCnt) ) {
+						System.out.println("データーセット保存異常");
+						Platform.runLater( () ->this.infoLB.setText("データーセット保存異常"));
+					}
 				}
-			}
+	    	}
+
+	        ch1_max = 0;
+	        ch2_max = 0;
+	        ch1_min = 9999;
+	        ch2_min = 9999;
+	        ch1_ave = 0;
+	        ch2_ave = 0;
+	        shotCnt=0;
+	        ch_ShotCnt[0] = 0;
+	        ch_ShotCnt[1] = 0;
+
+			//チャート用データーセットリセット
+			Platform.runLater( () ->tension_dataset.getSeries(0).clear());
+			Platform.runLater( () ->tension_dataset.getSeries(1).clear());
+			Platform.runLater( () ->mesureCntLB.setText("----------"));
+			ch1TensionRawDataList.clear();
+			ch2TensionRawDataList.clear();
+			ch1MovingaverageTimeList.clear();
+			ch2MovingaverageTimeList.clear();
+
+			//ラベル表示リセット
+			Platform.runLater(() ->CH1movingaverageLB.setText("---"));
+			Platform.runLater(() ->CH2movingaverageLB.setText("---"));
+			Platform.runLater(() ->hxvalueLB1.setText("---"));
+			Platform.runLater(() ->hxvalueLB2.setText("---"));
+			Platform.runLater(() ->hxvalueLB4.setText("---"));
+			Platform.runLater(() ->hxvalueLB5.setText("---"));
+			Platform.runLater(() ->ch1ErrCntLB.setText("---"));
+			Platform.runLater(() ->ch2ErrCntLB.setText("---"));
+			Platform.runLater(() ->infoLB.setText(""));
+
+			//チャートレンジ、上限下限線描画
+	    	chartLineRangeSetting();
+
+	    	//スタートタイマーリセット
+	    	startTime = new Timestamp(System.currentTimeMillis());
+	    	//****************************************************************************************************
+	    	//ここまで
+	    	//****************************************************************************************************
     	}
-
-        ch1_max = 0;
-        ch2_max = 0;
-        ch1_min = 9999;
-        ch2_min = 9999;
-        ch1_ave = 0;
-        ch2_ave = 0;
-        shotCnt=0;
-        ch_ShotCnt[0] = 0;
-        ch_ShotCnt[1] = 0;
-
-		//チャート用データーセットリセット
-		Platform.runLater( () ->tension_dataset.getSeries(0).clear());
-		Platform.runLater( () ->tension_dataset.getSeries(1).clear());
-		Platform.runLater( () ->mesureCntLB.setText("----------"));
-		ch1TensionRawDataList.clear();
-		ch2TensionRawDataList.clear();
-		ch1MovingaverageTimeList.clear();
-		ch2MovingaverageTimeList.clear();
-
-		//ラベル表示リセット
-		Platform.runLater(() ->CH1movingaverageLB.setText("---"));
-		Platform.runLater(() ->CH2movingaverageLB.setText("---"));
-		Platform.runLater(() ->hxvalueLB1.setText("---"));
-		Platform.runLater(() ->hxvalueLB2.setText("---"));
-		Platform.runLater(() ->hxvalueLB4.setText("---"));
-		Platform.runLater(() ->hxvalueLB5.setText("---"));
-		Platform.runLater(() ->ch1ErrCntLB.setText("---"));
-		Platform.runLater(() ->ch2ErrCntLB.setText("---"));
-		Platform.runLater(() ->infoLB.setText(""));
-
 
 		//機器異常リセット ※eventがnullの時は自動停止時に呼び出されたと判断しアラーム鳴動を止めない
 		//機器異常は常時監視されている8H以内に規定の回数計測エラーが発生した場合、巻きが停止して
@@ -518,14 +532,11 @@ public class MainScreenController {
 			if( mp_error2.isPlaying() ) Platform.runLater( () ->mp_error2.stop());
 		}
 
-		startTime = new Timestamp(System.currentTimeMillis());
     	}catch(Exception e) {
     		System.out.println(e +" position001");
     		resetExFlg = false;
     	}
 
-    	//チャートレンジ、上限下限線描画
-    	chartLineRangeSetting();
 
     	mainThredStart();
 
@@ -1178,7 +1189,7 @@ public class MainScreenController {
 		ProgressBarController.CH1movingaverageLB=CH1movingaverageLB;
 		ProgressBarController.CH2movingaverageLB=CH2movingaverageLB;
 
-		//設定ウィンドウを開く
+		//ウィンドウを開く
 		stage.showAndWait();
 
 		if( ProgressBarController.resultFlg ) {//キャンセルされた場合何もしない
@@ -1195,18 +1206,19 @@ public class MainScreenController {
 			System.out.println("分銅測定　データー保存完了");
 
 			//infoテキストへ終了メッセージ表示
+
 			if( ch1AVE > 30 ) {
 				if( ch1AVE>103 || ch1AVE<97) {
-					Platform.runLater( () ->infoLB.setText("CH1 inspection result BAD"));
+					msgBox("CH1 inspection result BAD 100±3[g] Over");
 				}else {
-					Platform.runLater( () ->infoLB.setText("CH1 inspection result GODD"));
+					msgBox("CH1 inspection result GOOD");
 				}
 			}
 			if( ch2AVE > 30 ) {
 				if( ch2AVE>103 || ch2AVE<97) {
-					Platform.runLater( () ->infoLB.setText("CH2 inspection result BAD"));
+					msgBox("CH1 inspection result BAD 100±3[g] Over");
 				}else {
-					Platform.runLater( () ->infoLB.setText("CH2 inspection result GODD"));
+					msgBox("CH1 inspection result GODD");
 				}
 			}
 		}
@@ -1215,6 +1227,27 @@ public class MainScreenController {
 		settingExFlg = false;
     }
 
+    private void msgBox(String msg) {
+    	FXMLLoader loader = new FXMLLoader(getClass().getResource("msgbox.fxml"));
+		AnchorPane root = null;
+		try {
+			root = (AnchorPane) loader.load();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		Scene scene = new Scene(root);
+		Stage stage = new Stage();
+		stage.initStyle(StageStyle.UNDECORATED);
+		stage.setScene(scene);
+		stage.setResizable(false);
+		stage.setAlwaysOnTop(true);//なぜか機能しない
+
+		msgboxController.msg = msg;
+
+		//ウィンドウを開く
+		stage.showAndWait();
+
+    }
 
 }
 

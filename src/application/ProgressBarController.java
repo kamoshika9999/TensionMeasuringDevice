@@ -76,8 +76,8 @@ public class ProgressBarController{
 					//終了処理
 					timeUpFlg = true;
 					Platform.runLater(() ->OkBT.setDisable(false));
-					Platform.runLater(() ->ch1ResultTX.setText( CH1movingaverageLB.getText() ));
-					Platform.runLater(() ->ch2ResultTX.setText( CH2movingaverageLB.getText() ));
+					Platform.runLater(() ->ch1ResultTX.setText( CH1movingaverageLB.getText() + " [g]"));
+					Platform.runLater(() ->ch2ResultTX.setText( CH2movingaverageLB.getText() + " [g]"));
 				}else {
 					//プログレスバー更新
 					if( !timeUpFlg ) {

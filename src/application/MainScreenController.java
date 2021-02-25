@@ -306,7 +306,7 @@ public class MainScreenController {
     		flg[0] = true;
     		flg[1] = true;
     		for(int i=0;i<2;i++) {
-    			if( hx[i].calibrationWeight > 0 && enableCnt[i] > 0) {
+    			if( hx[i].calibrationWeight > 0 && enableCnt[i] > 0 && hx[i].resolution > 0) {
 	    			if( maxValue[i] - minValue[i] > hx[i].resolution * 10) {
 	    				flg[i]=false;
 	    				mesureErrCnt2[i]++;//測定異常回数をプラスする

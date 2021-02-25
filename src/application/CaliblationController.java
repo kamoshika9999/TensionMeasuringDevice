@@ -177,6 +177,7 @@ public class CaliblationController {
 	   		   aveValue=0;
 
 	   		   System.out.println("----初期偏差 確認開始-----");
+	   		   Platform.runLater(() ->infoLB.setText("----初期偏差 確認開始-----"));
 	   		   //最初の20回の平均を取得
 	   		   final int tryCnt = 20;
 	   		   long[] tmpValue = new long[tryCnt];
@@ -193,6 +194,8 @@ public class CaliblationController {
 							   infoText ="Failed";
 							   trFlg=false;
 							   System.out.println("最初の20回測定内でFailed発生");
+							   Platform.runLater(() ->infoLB.setText("初期偏差確認中に計測機器のエラーを検出しました"
+							   		+ "断線が疑われます"));
 							   return;
 						   }
 					   }
@@ -206,12 +209,17 @@ public class CaliblationController {
 
 		   		   //最初の(tryCnt)回の偏差の平均を計算
 		   		   final double MaxDeviation = 500;
+		   		   double tmpMaxDeviation = 0;
 		   		   boolean okDeviation = true;
 		   		   double[] tmpDeviation = new double[tryCnt];
 		   		   for(int i=0;i<tryCnt;i++) {
 		   			   tmpDeviation[i] = Math.abs(tmpValue[i] - tmpAve);
 		   			   //System.out.println("|tmpValue[" + i + "] - tmpAve|" + Math.abs(tmpValue[i] - tmpAve));
 		   			   if( tmpDeviation[i] > MaxDeviation ) {
+
+		   				   if( tmpMaxDeviation < tmpDeviation[i] ) {
+		   					tmpMaxDeviation = tmpDeviation[i];
+		   				   }
 		   				   okDeviation = false;
 		   			   }
 		   		   }
@@ -219,6 +227,8 @@ public class CaliblationController {
 		   			   okFlg = true;
 		   		   }else {
 		   			   System.out.println("初期偏差大　再評価");
+		   			   final String tmpStr = String.valueOf(tmpMaxDeviation);
+		   			   Platform.runLater(() ->infoLB.setText(tmpStr + "__初期偏差大 再評価"));
 		   		   }
 	   		   }
 	   		   System.out.println("----初期偏差 確認終了");
@@ -236,8 +246,8 @@ public class CaliblationController {
 						   return;
 					   }
 				   }
-				   //得た値が最初の20回の平均との偏差が換算値で5gを超えている場合(異常値の破棄)
-				   if( Math.abs( tmpAve - MainScreenController.hx[chNo].value) > MainScreenController.hx[chNo].resolution*5) {
+				   //得た値が最初の20回の平均との偏差が2000を超えている場合(異常値の破棄)
+				   if( Math.abs( tmpAve - MainScreenController.hx[chNo].value) > 2000) {//> MainScreenController.hx[chNo].resolution*5) {
 					  System.out.println( "tmpAve="+tmpAve + "差" + (tmpAve - MainScreenController.hx[chNo].value) );
 					  System.out.println( "|tmpAve - hx[chNo].value| = " + Math.abs( tmpAve- MainScreenController.hx[chNo].value));
 					  overCnt++;
@@ -247,9 +257,14 @@ public class CaliblationController {
 				        aveValue += MainScreenController.hx[chNo].value;
 				   }
 	   			}
+	   			if( rpeetCnt == overCnt ) {
+	   				Platform.runLater(() ->infoLB.setText("計測値が揺らぎすぎています"));
+	   				trFlg = false;
+	   				return;
+	   			}
 	   			aveValue /= rpeetCnt-overCnt;
 	   			System.out.println("----平均 確認終了:" + aveValue);
-
+	   			//Platform.runLater(() ->targetTX.setText("----平均 確認終了:" + aveValue));
 	   			trFlg=false;
 		   }
 	   };
@@ -265,6 +280,11 @@ public class CaliblationController {
 
     @FXML
     void initialize() {
+    	for(int i=0;i<2;i++) {
+	    	if( emptyValue[i] >= calibValue[1] ) {
+	    		calibValue[i] = emptyValue[i] +500000;
+	    	}
+    	}
     	Platform.runLater(() ->this.enptyValueTX_1.setText(String.valueOf(emptyValue[0])));
     	Platform.runLater(() ->this.calibValueTX_1.setText(String.valueOf(calibValue[0])));
     	Platform.runLater(() ->this.calibWeightTX_1.setText(String.valueOf(calibWeight[0])));
